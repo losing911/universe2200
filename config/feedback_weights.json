@@ -1,0 +1,60 @@
+{
+    "description": "Configuration for content feedback loop weights",
+    "version": "1.0",
+    "enabled": true,
+    "platform_weights": {
+        "ChronoNet": {
+            "public_awareness": 0.05,
+            "description": "News coverage increases public awareness"
+        },
+        "MindLink": {
+            "public_sentiment_positive": 0.03,
+            "public_sentiment_negative": -0.04,
+            "description": "Social media affects sentiment based on event tone"
+        },
+        "NeoFlix": {
+            "amplification_multiplier": 1.5,
+            "description": "Video content amplifies impact if production_priority is HIGH or URGENT"
+        },
+        "StellarExchange": {
+            "market_confidence": -0.02,
+            "description": "Market alerts decrease confidence (uncertainty)"
+        }
+    },
+    "amplification_thresholds": {
+        "NeoFlix": {
+            "URGENT": 2.0,
+            "HIGH": 1.5,
+            "STANDARD": 1.0
+        }
+    },
+    "sentiment_rules": {
+        "description": "How to determine sentiment from event metadata",
+        "positive_if": {
+            "tone": [
+                "informative"
+            ],
+            "severity": [
+                "MINIMAL",
+                "LOW"
+            ]
+        },
+        "negative_if": {
+            "tone": [
+                "urgent",
+                "serious"
+            ],
+            "severity": [
+                "HIGH",
+                "CRITICAL"
+            ]
+        }
+    },
+    "daily_decay": {
+        "description": "Daily decay rates to prevent runaway values",
+        "public_awareness": -0.01,
+        "public_sentiment": {
+            "toward_neutral": 0.02
+        }
+    }
+}

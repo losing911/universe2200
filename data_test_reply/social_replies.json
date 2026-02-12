@@ -1,0 +1,11 @@
+{
+  "post_1": {
+    "id": "ai_reply_1770891976",
+    "post_id": "post_1",
+    "user_handle": "System_Observer",
+    "content": "Observation recorded.",
+    "timestamp": "2026-02-12T13:26:16.249599",
+    "type": "ai_reply",
+    "is_system_message": true
+  }
+}

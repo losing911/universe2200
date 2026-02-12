@@ -1,0 +1,30 @@
+{
+  "post_1": [
+    {
+      "id": "cmt_1770886460_184",
+      "post_id": "post_1",
+      "user_handle": "user_001",
+      "content": "This is unacceptable!",
+      "timestamp": "2026-02-12T11:54:20.170832",
+      "type": "user_comment"
+    },
+    {
+      "id": "cmt_1770886460_106",
+      "post_id": "post_1",
+      "user_handle": "user_002",
+      "content": "Propaganda.",
+      "timestamp": "2026-02-12T11:54:20.172871",
+      "type": "user_comment"
+    }
+  ],
+  "post_2": [
+    {
+      "id": "cmt_1770886460_234",
+      "post_id": "post_2",
+      "user_handle": "user_003",
+      "content": "Interesting.",
+      "timestamp": "2026-02-12T11:54:20.172871",
+      "type": "user_comment"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+    "description": "Content generation configuration",
+    "version": "1.0",
+    "content_mode": "template",
+    "modes": {
+        "template": {
+            "description": "Deterministic template-based generation",
+            "enabled": true
+        },
+        "ai": {
+            "description": "AI-powered content generation (not implemented yet)",
+            "enabled": false,
+            "note": "Raises NotImplementedError if selected"
+        }
+    },
+    "future_config": {
+        "ai_model": "gpt-4",
+        "temperature": 0.7,
+        "max_tokens": 500,
+        "api_endpoint": null
+    }
+}

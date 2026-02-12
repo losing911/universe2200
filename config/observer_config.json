@@ -1,0 +1,34 @@
+{
+    "description": "Configuration for Meta Observer Layer",
+    "version": "1.0",
+    "enabled": true,
+    "check_interval_days": 7,
+    "thresholds": {
+        "min_event_diversity": 3,
+        "max_conflict_frequency": 4,
+        "max_market_instability": 0.2
+    },
+    "adjustments": {
+        "increase_diversity": {
+            "target_rule": "Protest Generation",
+            "parameter": "unrest_threshold",
+            "action": "decrease",
+            "value": 0.05,
+            "min_limit": 0.2
+        },
+        "reduce_conflict": {
+            "target_rule": "Protest Generation",
+            "parameter": "unrest_threshold",
+            "action": "increase",
+            "value": 0.05,
+            "max_limit": 0.8
+        },
+        "stabilize_market": {
+            "target_rule": "Economy Pressure",
+            "parameter": "water_threshold",
+            "action": "increase",
+            "value": 0.1,
+            "max_limit": 2.0
+        }
+    }
+}

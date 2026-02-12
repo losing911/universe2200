@@ -1,0 +1,20 @@
+{
+  "post_1": [
+    {
+      "id": "cmt_1770891976_661",
+      "post_id": "post_1",
+      "user_handle": "user_100",
+      "content": "This is unacceptable!",
+      "timestamp": "2026-02-12T13:26:16.248084",
+      "type": "user_comment"
+    },
+    {
+      "id": "cmt_1770891976_816",
+      "post_id": "post_1",
+      "user_handle": "user_101",
+      "content": "Propaganda.",
+      "timestamp": "2026-02-12T13:26:16.248590",
+      "type": "user_comment"
+    }
+  ]
+}
