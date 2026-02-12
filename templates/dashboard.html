@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universe 2200 | Admin Command</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0f;
+            --card-bg: #13131f;
+            --text-color: #e0e0e0;
+            --accent-color: #00f0ff; /* Cyan Neon */
+            --accent-dim: #00f0ff40;
+            --danger-color: #ff2a6d;
+            --success-color: #05d9e8;
+            --font-family: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        h1, h2, h3 {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-color);
+            border-bottom: 1px solid var(--accent-dim);
+            padding-bottom: 10px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--accent-dim);
+            padding: 20px;
+            border-radius: 4px;
+            box-shadow: 0 0 10px rgba(0, 240, 255, 0.05);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .metric-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 2px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-running {
+            background-color: var(--success-color);
+            color: #000;
+        }
+
+        .status-paused {
+            background-color: var(--danger-color);
+            color: #fff;
+        }
+
+        button {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 8px 16px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background-color: var(--accent-color);
+            color: #000;
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+
+        button.danger {
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background-color: var(--danger-color);
+            color: #fff;
+            box-shadow: 0 0 10px var(--danger-color);
+        }
+        
+        input[type="number"] {
+            background: #000;
+            border: 1px solid var(--accent-dim);
+            color: #fff;
+            padding: 8px;
+            width: 80px;
+            font-family: inherit;
+        }
+
+        .log-panel {
+            grid-column: 1 / -1;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            color: #aaa;
+            border-top: 1px solid var(--accent-dim);
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        
+        .snapshot-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        
+        .snapshot-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #222;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h1>Universe 2200 // Admin Node</h1>
+        <div id="connection-status" style="color: var(--danger-color);">OFFLINE</div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Metrics Panel -->
+        <div class="card">
+            <h2>Live Metrics</h2>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <span class="metric-label">Tick</span>
+                    <span class="metric-value" id="val-tick">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Status</span>
+                    <span id="val-status"><span class="status-badge">--</span></span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Public Unrest</span>
+                    <span class="metric-value" id="val-unrest">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Info Noise</span>
+                    <span class="metric-value" id="val-noise">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Surveillance</span>
+                    <span class="metric-value" id="val-surveillance">--</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Tick Speed (s)</span>
+                    <span class="metric-value" id="val-speed">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Simulation Controls -->
+        <div class="card">
+            <h2>Sim Control</h2>
+            <div style="margin-bottom: 20px;">
+                <button onclick="controlSim('resume')">▶ RESUME</button>
+                <button class="danger" onclick="controlSim('pause')">❚❚ PAUSE</button>
+            </div>
+            
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                <input type="number" id="input-speed" step="0.1" min="0.1" value="1.0">
+                <button onclick="setSpeed()">Set Speed</button>
+            </div>
+            
+            <div>
+                <button onclick="forceSnapshot()">📷 Force Snapshot</button>
+            </div>
+        </div>
+        
+        <!-- System Health -->
+        <div class="card">
+            <h2>System Health</h2>
+            <div class="metric-grid">
+                <div class="metric-item">
+                    <span class="metric-label">CPU Usage</span>
+                    <span class="metric-value" id="sys-cpu">--%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">RAM Usage</span>
+                    <span class="metric-value" id="sys-ram">-- MB</span>
+                </div>
+                <!-- Uptime could go here -->
+            </div>
+        </div>
+
+        <!-- Snapshots Folder -->
+        <div class="card" style="grid-column: 1 / -1;">
+            <h2>Snapshot Management</h2>
+            <div class="snapshot-list" id="snapshot-list">
+                <!-- Items injected here -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Minimal JS -->
+    <script>
+        const API_BASE = '/admin';
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch(`${API_BASE}/status`);
+                if (!res.ok) throw new Error('Auth failed or Server error');
+                const data = await res.json();
+                
+                // Update UI
+                document.getElementById('connection-status').innerText = 'ONLINE';
+                document.getElementById('connection-status').style.color = 'var(--success-color)';
+                
+                document.getElementById('val-tick').innerText = data.tick;
+                document.getElementById('val-unrest').innerText = data.metrics.unrest ? data.metrics.unrest.toFixed(3) : '--';
+                document.getElementById('val-noise').innerText = data.metrics.noise ? data.metrics.noise.toFixed(3) : '--';
+                document.getElementById('val-surveillance').innerText = data.metrics.surveillance ? data.metrics.surveillance.toFixed(3) : '--';
+                document.getElementById('val-speed').innerText = data.tick_speed;
+                
+                // Status Badge
+                const statusEl = document.getElementById('val-status');
+                if (data.running) {
+                    statusEl.innerHTML = '<span class="status-badge status-running">RUNNING</span>';
+                } else {
+                    statusEl.innerHTML = '<span class="status-badge status-paused">PAUSED</span>';
+                }
+
+            } catch (err) {
+                document.getElementById('connection-status').innerText = 'OFFLINE';
+                document.getElementById('connection-status').style.color = 'var(--danger-color)';
+                console.error(err);
+            }
+        }
+        
+        async function fetchSystem() {
+            try {
+                const res = await fetch(`${API_BASE}/system_health`);
+                const data = await res.json();
+                document.getElementById('sys-cpu').innerText = data.cpu_percent + '%';
+                document.getElementById('sys-ram').innerText = (data.memory_info.rss / 1024 / 1024).toFixed(0) + ' MB';
+            } catch (e) {}
+        }
+        
+        async function fetchSnapshots() {
+            try {
+                const res = await fetch(`${API_BASE}/snapshots`);
+                const data = await res.json();
+                const list = document.getElementById('snapshot-list');
+                list.innerHTML = '';
+                
+                data.snapshots.reverse().forEach(fname => {
+                    const div = document.createElement('div');
+                    div.className = 'snapshot-item';
+                    div.innerHTML = `
+                        <span>${fname}</span>
+                        <button class="small" style="font-size:0.8em; padding:2px 8px;" onclick="alert('Restore logic not connected in demo')">RESTORE</button>
+                    `;
+                    list.appendChild(div);
+                });
+            } catch (e) {}
+        }
+
+        async function controlSim(action) {
+            await fetch(`${API_BASE}/${action}`, { method: 'POST' });
+            fetchStatus(); // Instant update
+        }
+        
+        async function setSpeed() {
+            const val = parseFloat(document.getElementById('input-speed').value);
+            await fetch(`${API_BASE}/set_tick_speed`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ seconds_per_tick: val })
+            });
+            fetchStatus();
+        }
+        
+        async function forceSnapshot() {
+            await fetch(`${API_BASE}/force_snapshot`, { method: 'POST' });
+            alert('Snapshot Triggered');
+            fetchSnapshots();
+        }
+
+        // Init
+        setInterval(fetchStatus, 3000); // 3s fast refresh
+        setInterval(fetchSystem, 5000);
+        setInterval(fetchSnapshots, 10000);
+        
+        fetchStatus();
+        fetchSystem();
+        fetchSnapshots();
+    </script>
+</body>
+</html>
