@@ -30,12 +30,23 @@ ENV/
 .idea/
 .vscode/
 
-# Local Data (exclude simulation state, keep structure if possible)
+# Test Files
+test_*.py
+*_test.py
+
+# Test Data Directories
+data_test_*/
+data/test_*/
+
+# Local Data (exclude simulation state)
 data/**/*.json
-!data/**/.keep
+!data/public/.gitkeep
 data/public/*.json
-!data/public/public_news.json
 data/snapshots/*.json
 
 # Logs
 *.log
+
+# OS
+.DS_Store
+Thumbs.db
