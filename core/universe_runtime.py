@@ -42,7 +42,9 @@ class UniverseRuntime:
                  social_network=None,
                  influence_engine=None,
                  ai_reaction_engine=None,
-                 event_scheduler=None):
+                 drama_engine=None,
+                 event_scheduler=None,
+                 social_generator=None):
         """
         Initialize Universe Runtime.
         
@@ -74,7 +76,9 @@ class UniverseRuntime:
         self.social_network = social_network
         self.influence_engine = influence_engine
         self.ai_reaction_engine = ai_reaction_engine
+        self.drama_engine = drama_engine # New Drama Component
         self.event_scheduler = event_scheduler
+        self.social_generator = social_generator # New component for feed generation
         
         # Runtime State
         self.running = False
@@ -190,6 +194,21 @@ class UniverseRuntime:
                 world_state=self.world_state,
                 recent_posts=posts
             )
+            
+            # Run Drama Engine
+            if self.drama_engine:
+                drama_events = self.drama_engine.generate_events(self.tick_count)
+                if drama_events:
+                     # Inject drama into news or separate field
+                     # For now, let's treat them as "Social News" or append to news
+                     for de in drama_events:
+                         content_output["news"].append({
+                             "title": f"Drama: {de['type'].title()}",
+                             "summary": de["content"],
+                             "type": "social_drama",
+                             "timestamp": datetime.now().isoformat()
+                         })
+                     content_output["drama"] = drama_events
             
             # Print Dystopian Broadcast
             print("\n" + "="*50)

@@ -16,6 +16,8 @@ from simulation.ai_reaction_engine import AIReactionEngine
 from simulation.event_scheduler import EventScheduler
 from content.social_impact import SocialImpactProcessor
 from content.social_interaction import CommentManager, ReplyManager, SocialReplyGenerator
+from content.social_media_generator import SocialMediaGenerator
+from content.drama_engine import DramaEngine
 
 class DailyScheduler:
     """
@@ -109,6 +111,13 @@ class DailyScheduler:
         
         # Re-initialize ContentPipeline with LLM Client
         content_pipeline = ContentPipeline(llm_client=llm_client)
+        
+        # Initialize SocialMediaGenerator with LLM Client
+        social_generator = SocialMediaGenerator(llm_client=llm_client)
+        
+        # Initialize DramaEngine
+        drama_engine = DramaEngine(self.social_network)
+        
         self.runtime = UniverseRuntime(
             config=config,
             world_state=self.world_manager.state,
@@ -119,7 +128,9 @@ class DailyScheduler:
             social_network=self.social_network,
             influence_engine=influence_engine,
             ai_reaction_engine=ai_reaction_engine,
-            event_scheduler=event_scheduler
+            drama_engine=drama_engine,
+            event_scheduler=event_scheduler,
+            social_generator=social_generator
         )
         
         self.is_initialized = True

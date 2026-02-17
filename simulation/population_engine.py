@@ -21,6 +21,9 @@ class UserProfile:
     """
     user_id: str
     faction: str  # bio, augmented, synthetic, hybrid, purist
+    role: str     # influencer, comedian, journalist, troll, fan, regular
+    interests: List[str]
+    personality_traits: List[str]
     political_bias: float  # 0.0 - 1.0
     aggression_level: float  # 0.0 - 1.0
     trust_in_media: float  # 0.0 - 1.0
@@ -40,6 +43,18 @@ class PopulationEngine:
     """
     
     FACTIONS = ["bio", "augmented", "synthetic", "hybrid", "purist"]
+    
+    # New Social Dimensions
+    ROLES = ["influencer", "comedian", "journalist", "troll", "fan", "regular"]
+    ROLE_WEIGHTS = [0.02, 0.03, 0.02, 0.05, 0.15, 0.73] # 2% influencers, etc.
+    
+    INTERESTS = [
+        "fashion", "tech", "gaming", "politics", "gossip", "fitness", 
+        "music", "art", "crypto", "history", "science", "travel"
+    ]
+    
+    TRAITS = ["humorous", "drama_seeker", "wholesome", "toxic", "intellectual", "chaotic"]
+    
     TOPICS = ["politics", "economy", "technology", "security", "corporate"]
     
     POST_CATEGORIES = [
@@ -207,6 +222,18 @@ class PopulationEngine:
             user_id = f"user_{i:04d}"
             
             faction = init_rng.choice(self.FACTIONS)
+            
+            # Role selection
+            role = init_rng.choices(self.ROLES, weights=self.ROLE_WEIGHTS, k=1)[0]
+            
+            # Interests (1-3)
+            num_interests = init_rng.randint(1, 3)
+            interests = init_rng.sample(self.INTERESTS, k=num_interests)
+            
+            # Personality Traits (1-2)
+            num_traits = init_rng.randint(1, 2)
+            personality_traits = init_rng.sample(self.TRAITS, k=num_traits)
+            
             political_bias = init_rng.random()
             aggression_level = init_rng.random()
             trust_in_media = init_rng.random()
@@ -214,6 +241,10 @@ class PopulationEngine:
             # Power law distribution for activity level
             raw_activity = init_rng.random()
             activity_level = raw_activity * raw_activity
+            
+            # Boost activity for influencers and trolls
+            if role == "influencer": activity_level = max(0.8, activity_level * 1.5)
+            if role == "troll": activity_level = max(0.6, activity_level * 1.2)
             
             topic_affinity = {
                 topic: init_rng.random() 
@@ -223,6 +254,9 @@ class PopulationEngine:
             user = UserProfile(
                 user_id=user_id,
                 faction=faction,
+                role=role,
+                interests=interests,
+                personality_traits=personality_traits,
                 political_bias=political_bias,
                 aggression_level=aggression_level,
                 trust_in_media=trust_in_media,

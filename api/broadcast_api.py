@@ -69,13 +69,30 @@ async def get_news():
     """
     return _load_json_safe("public_news.json")
 
+@app.get("/api/social/x")
+async def get_social_x():
+    """
+    Get recent X-style posts.
+    Source: public_social_x.json
+    """
+    return _load_json_safe("public_social_x.json")
+
+@app.get("/api/social/insta")
+async def get_social_insta():
+    """
+    Get recent Insta-style posts.
+    Source: public_social_insta.json
+    """
+    return _load_json_safe("public_social_insta.json")
+
 @app.get("/api/social")
-async def get_social():
+async def get_social_legacy():
     """
-    Get recent social media feed and trending topics.
-    Source: public_social.json
+    Get legacy social media feed (aggregated or default).
     """
-    return _load_json_safe("public_social.json")
+    # Try to load X feed as default or merge? 
+    # For now, let's return X feed as main, or generic public_social if it still exists
+    return _load_json_safe("public_social_x.json")
 
 @app.get("/api/metrics")
 async def get_metrics():

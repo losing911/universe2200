@@ -33,6 +33,9 @@ class SocialNetworkCore:
         self.comments: List[Dict[str, Any]] = []
         self.daily_engagement: Dict[str, int] = {}
         
+        self.relationships: Dict[str, Dict[str, str]] = {} # user_id -> {target_id: type}
+        # Types: following, friend, close_friend, enemy, blocked, partner
+        
         # Ensure data directory exists
         os.makedirs(self.data_dir, exist_ok=True)
         
@@ -40,7 +43,7 @@ class SocialNetworkCore:
         self.load_state()
 
     def load_state(self):
-        """Load users and content from JSON files."""
+        """Load users, content, and relationships from JSON files."""
         if os.path.exists(self.users_path):
             try:
                 with open(self.users_path, 'r', encoding='utf-8') as f:
@@ -55,10 +58,12 @@ class SocialNetworkCore:
                     data = json.load(f)
                     self.posts = data.get("posts", [])
                     self.comments = data.get("comments", [])
+                    self.relationships = data.get("relationships", {})
             except Exception as e:
                 print(f"Error loading content: {e}")
                 self.posts = []
                 self.comments = []
+                self.relationships = {}
 
     def save_state(self):
         """Persist current state to JSON files."""
@@ -69,7 +74,8 @@ class SocialNetworkCore:
             with open(self.content_path, 'w', encoding='utf-8') as f:
                 json.dump({
                     "posts": self.posts,
-                    "comments": self.comments
+                    "comments": self.comments,
+                    "relationships": self.relationships
                 }, f, indent=2)
         except Exception as e:
             print(f"Error saving state: {e}")
@@ -78,7 +84,10 @@ class SocialNetworkCore:
         """
         Ingest UserProfile objects from PopulationEngine.
         Idempotent: Updates existing users or creates new ones.
+        Also initializes social graph connections.
         """
+        rng = random.Random(42) # Consistent graph gen
+        
         for p_user in population_users:
             user_id = p_user.user_id
             
@@ -87,17 +96,135 @@ class SocialNetworkCore:
                 self.users[user_id] = {
                     "id": user_id,
                     "faction": p_user.faction,
+                    "role": getattr(p_user, "role", "regular"),
+                    "interests": getattr(p_user, "interests", []),
+                    "traits": getattr(p_user, "personality_traits", []),
                     "joined_date": datetime.now().strftime("%Y-%m-%d"),
-                    "followers_count": self._calculate_initial_followers(p_user),
+                    "followers_count": 0, # Calculated dynamically now
                     "clout_score": 0.1,  # 0.0 to 1.0 (Influence)
                     "lifetime_posts": 0,
-                    "lifetime_comments": 0,
-                    "topic_affinity": p_user.topic_affinity
+                    "lifetime_comments": 0
                 }
+                
+                # Apply role boosters
+                if self.users[user_id]["role"] == "influencer":
+                    self.users[user_id]["clout_score"] = 0.8
+                    
             else:
-                # Update dynamic fields that might change in population engine
-                # e.g., if topic affinity evolves
-                self.users[user_id]["topic_affinity"] = p_user.topic_affinity
+                 # Update dynamic fields
+                 self.users[user_id]["role"] = getattr(p_user, "role", "regular")
+                 self.users[user_id]["interests"] = getattr(p_user, "interests", [])
+                 
+        # Initialize Relationships for new users (Simple Small World Model)
+        user_ids = list(self.users.keys())
+        if not user_ids: return
+        
+        for uid in user_ids:
+            if uid not in self.relationships:
+                self.relationships[uid] = {}
+                
+                # 1. Follow Influencers (Bandwagon)
+                influencers = [u for u in user_ids if self.users[u].get("role") == "influencer"]
+                for inf in influencers:
+                    if uid != inf and rng.random() < 0.3:
+                         self.relationships[uid][inf] = "following"
+                         
+                # 2. Random Connections (Friends/Mutuals)
+                # Pick 5-10 random people
+                targets = rng.sample(user_ids, k=min(len(user_ids), 10))
+                for t in targets:
+                    if t == uid: continue
+                    
+                    # Interest overlap increases chance
+                    u_int = set(self.users[uid].get("interests", []))
+                    t_int = set(self.users[t].get("interests", []))
+                    overlap = len(u_int.intersection(t_int))
+                    
+                    chance = 0.05 + (overlap * 0.1)
+                    if rng.random() < chance:
+                        self.relationships[uid][t] = "following"
+                        # reciprocate chance
+                        if rng.random() < 0.4:
+                            self.relationships.setdefault(t, {})[uid] = "following"
+                            # Upgrade to friend?
+                            if rng.random() < 0.3:
+                                self.relationships[uid][t] = "friend"
+                                self.relationships[t][uid] = "friend"
+
+    def generate_relationship_events(self, tick: int) -> List[Dict]:
+        """
+        Simulate evolution of relationships: breakups, new friendships, drama.
+        Returns a list of 'News' style event strings or metadata to be logged.
+        """
+        events = []
+        rng = random.Random(tick)
+        
+        # Sample a subset of users to evolve relationships
+        active_users = rng.sample(list(self.users.keys()), k=min(len(self.users), 20))
+        
+        for uid in active_users:
+            if uid not in self.relationships: continue
+            
+            # Check existing relationships
+            rels = list(self.relationships[uid].items())
+            if not rels: continue
+            
+            target_id, status = rng.choice(rels)
+            
+            # Evolution Logic
+            if status == "friend":
+                # Drama?
+                if rng.random() < 0.05:
+                    self.relationships[uid][target_id] = "enemy"
+                    self.relationships[target_id][uid] = "enemy"
+                    events.append({
+                        "type": "drama",
+                        "actors": [uid, target_id],
+                        "desc": "Friendship ended via public argument."
+                    })
+                # Upgrade?
+                elif rng.random() < 0.02:
+                    self.relationships[uid][target_id] = "partner"
+                    self.relationships[target_id][uid] = "partner"
+                    events.append({
+                        "type": "romance",
+                        "actors": [uid, target_id],
+                        "desc": "Relationship status updated to: In a Relationship."
+                    })
+                    
+            elif status == "partner":
+                # Breakup?
+                if rng.random() < 0.1:
+                    self.relationships[uid][target_id] = "blocked"
+                    self.relationships[target_id][uid] = "blocked"
+                    events.append({
+                        "type": "breakup",
+                        "actors": [uid, target_id],
+                        "desc": "Messy public breakup occurred."
+                    })
+                    
+        return events
+
+    def register_post(self, post_data: Dict[str, Any]):
+        """Register a new post into the system."""
+        # Ensure required fields
+        if "id" not in post_data:
+            post_data["id"] = f"post_{len(self.posts)}_{int(datetime.now().timestamp())}"
+        
+        if "timestamp" not in post_data:
+            post_data["timestamp"] = datetime.now().isoformat()
+            
+        if "metrics" not in post_data:
+            post_data["metrics"] = {"likes": 0, "shares": 0, "comments": 0, "views": 0}
+            
+        self.posts.append(post_data)
+        
+        # Update user stats if author exists
+        author_id = post_data.get("author_id")
+        if author_id and author_id in self.users:
+            self.users[author_id]["lifetime_posts"] += 1
+            # Posting increases clout slightly
+            self.users[author_id]["clout_score"] = min(1.0, self.users[author_id]["clout_score"] + 0.01)
 
     def _calculate_initial_followers(self, p_user: Any) -> int:
         """Determinstic follower count based on user attributes."""
