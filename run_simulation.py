@@ -137,7 +137,22 @@ def main():
                     snapshot_social_x = []
                     snapshot_social_insta = []
             except Exception as e:
-                logger.error(f"Social generation failed: {e}")
+                logger.error(f"Social generation failed: {e}", exc_info=True)
+                # Write empty files so API doesn't break
+                write_public_file("public_social_x.json", {
+                    "status": "error",
+                    "error": str(e),
+                    "timestamp": timestamp_str,
+                    "tick": step_result["tick"],
+                    "data": []
+                })
+                write_public_file("public_social_insta.json", {
+                    "status": "error",
+                    "error": str(e),
+                    "timestamp": timestamp_str,
+                    "tick": step_result["tick"],
+                    "data": []
+                })
                 snapshot_social_x = []
                 snapshot_social_insta = []
 
