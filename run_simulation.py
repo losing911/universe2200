@@ -103,16 +103,44 @@ def main():
                     "data": content["news"]
                 })
                 
-            # 2. Social
-            if content.get("social_feed"):
-                write_public_file("public_social.json", {
-                    "status": "live",
-                    "timestamp": timestamp_str,
-                    "tick": step_result["tick"],
-                    "data": content["social_feed"],
-                    "trending": content.get("trending", [])
-                })
-            
+            # 2. Social (Dual Platform)
+            try:
+                if runtime.content_pipeline and runtime.content_pipeline.social_gen:
+                    social_gen = runtime.content_pipeline.social_gen
+                    
+                    # Generate X Feed
+                    x_feed = social_gen.generate_feed(
+                        metrics, news_items, runtime.config.base_seed + runtime.tick_count, count_range=(5, 10)
+                    )
+                    write_public_file("public_social_x.json", {
+                        "status": "live",
+                        "timestamp": timestamp_str,
+                        "tick": step_result["tick"],
+                        "data": x_feed["posts"]
+                    })
+                    
+                    # Generate Insta Feed
+                    insta_feed = social_gen.generate_feed(
+                        metrics, news_items, runtime.config.base_seed + runtime.tick_count + 1, count_range=(5, 10)
+                    )
+                    write_public_file("public_social_insta.json", {
+                        "status": "live",
+                        "timestamp": timestamp_str,
+                        "tick": step_result["tick"],
+                        "data": insta_feed["posts"]
+                    })
+                    
+                    # Store for snapshot
+                    snapshot_social_x = x_feed["posts"]
+                    snapshot_social_insta = insta_feed["posts"]
+                else:
+                    snapshot_social_x = []
+                    snapshot_social_insta = []
+            except Exception as e:
+                logger.error(f"Social generation failed: {e}")
+                snapshot_social_x = []
+                snapshot_social_insta = []
+
             # Construct Public Data
             current_state = scheduler.get_current_state()
             
@@ -131,8 +159,8 @@ def main():
                 "date": timestamp_str,
                 "metrics": metrics_data,
                 "news": content.get("news", []),
-                "social": content.get("social_feed", []),
-                "trending": content.get("trending", []),
+                "social_x": snapshot_social_x,
+                "social_insta": snapshot_social_insta,
                 "status": "running"
             }
             write_public_file("public_snapshot.json", snapshot_data)
