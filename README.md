@@ -92,7 +92,6 @@ Probability scales with unrest level.
 Metrics gradually return to baseline over time.
 
 ## Event Schema
-
 Every event includes:
 
 ```python

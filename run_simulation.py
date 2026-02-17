@@ -86,36 +86,56 @@ def main():
             # We want finer grain if content pipeline runs every runtime tick.
             # DailyScheduler wraps runtime.run_tick
             
-            scheduler.run_daily_tick() # This persists state too
+            # Run Scheduler/Runtime Tick
+            # DailyScheduler.run_daily_tick advances date and runs runtime.run_tick
+            step_result = scheduler.run_daily_tick() # This persists state too
             
             # Gather Data for Public Cache
-            # 1. News
-            news_items = [] # We need to capture from pipeline output
-            # Current implementation of scheduler doesn't easily return pipeline output
-            # We might need to tap into runtime.content_pipeline.last_output if it existed
-            # or rely on what's in world state logs?
+            content = step_result.get("content", {})
+            timestamp_str = step_result["date"].strftime('%Y-%m-%d')
             
-            # Refactor: We can access runtime components manually
+            # 1. News
+            if content.get("news"):
+                write_public_file("public_news.json", {
+                    "status": "live",
+                    "timestamp": timestamp_str,
+                    "tick": step_result["tick"],
+                    "data": content["news"]
+                })
+                
+            # 2. Social
+            if content.get("social_feed"):
+                write_public_file("public_social.json", {
+                    "status": "live",
+                    "timestamp": timestamp_str,
+                    "tick": step_result["tick"],
+                    "data": content["social_feed"],
+                    "trending": content.get("trending", [])
+                })
             
             # Construct Public Data
             current_state = scheduler.get_current_state()
             
             # Metrics
             metrics_data = current_state['metrics']
-            write_public_file("public_metrics.json", metrics_data)
+            write_public_file("public_metrics.json", {
+                "status": "live",
+                "timestamp": timestamp_str,
+                "tick": step_result["tick"],
+                "data": metrics_data
+            })
             
             # Snapshot Update (Full Public State)
             snapshot_data = {
                 "tick": runtime.tick_count,
-                "date": current_state['date'].strftime('%Y-%m-%d'),
+                "date": timestamp_str,
                 "metrics": metrics_data,
+                "news": content.get("news", []),
+                "social": content.get("social_feed", []),
+                "trending": content.get("trending", []),
                 "status": "running"
             }
             write_public_file("public_snapshot.json", snapshot_data)
-            
-            # Simulate News/Social updates (mock or real if pipeline stores them)
-            # In real impl, we'd read from a buffer in ContentPipeline
-            # For now, we write placeholders or what we have.
             
             # Persist Snapshot
             if runtime.tick_count % SNAPSHOT_INTERVAL == 0:

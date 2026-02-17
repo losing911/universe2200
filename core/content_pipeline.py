@@ -41,9 +41,10 @@ class ContentPipeline:
         "corporate_power": 0.8,    # Corporate dominance
     }
     
-    def __init__(self):
+    def __init__(self, llm_client=None):
         """Initialize content pipeline."""
-        self.social_gen = SocialMediaGenerator()
+        self.llm_client = llm_client
+        self.social_gen = SocialMediaGenerator(llm_client=llm_client)
     
     def run(self, 
             tick_context: TickContext,

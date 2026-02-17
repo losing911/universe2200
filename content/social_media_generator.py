@@ -14,8 +14,9 @@ class SocialMediaGenerator:
     Generates a feed of social media posts reacting to the world state.
     """
     
-    def __init__(self):
+    def __init__(self, llm_client=None):
         self.factions = ["Corporate", "Civic", "Shadow", "State"]
+        self.llm_client = llm_client
         
     def generate_feed(self, 
                      world_metrics: Dict[str, float],
@@ -49,6 +50,15 @@ class SocialMediaGenerator:
         # Analyze context from news
         news_context = self._analyze_news_context(latest_news)
         
+        # AI Generation Attempt
+        if self.llm_client and rng.random() < 0.3:  # 30% chance to use AI
+             try:
+                 ai_posts = self._generate_ai_posts(num_posts, world_metrics, news_context, seed)
+                 if ai_posts:
+                     return {"posts": ai_posts}
+             except Exception as e:
+                 print(f"AI Social Gen failed: {e}")
+        
         for i in range(num_posts):
             # Deterministic post seed
             post_seed = seed + i * 7919
@@ -76,6 +86,43 @@ class SocialMediaGenerator:
             })
             
         return {"posts": posts}
+
+    def _generate_ai_posts(self, count, metrics, context, seed):
+        """Generate a batch of social posts using LLM."""
+        system_prompt = (
+            "You are a social media simulator for a cyberpunk dystopia. "
+            "Generate realistic user posts reflecting the current world state. "
+            "Mix of citizens, bots, and corporate accounts. "
+            "Return a JSON object with a 'posts' list."
+        )
+        
+        user_prompt = f"""
+        Generate {count} social media posts.
+        Context: {context}
+        Metrics: Unrest={metrics.get('public_unrest'):.2f}, Trust={metrics.get('media_trust'):.2f}
+        
+        Format per post:
+        {{
+            "author_type": "citizen|bot|faction|media",
+            "tone": "string",
+            "content": "string (max 280 chars)",
+            "sentiment": float (-1.0 to 1.0),
+            "engagement": {{ "likes": int, "reposts": int }}
+        }}
+        """
+        
+        result = self.llm_client.generate_json(system_prompt, user_prompt)
+        if not result or 'posts' not in result:
+            return None
+            
+        # Post-process to add IDs
+        processed = []
+        for i, p in enumerate(result['posts']):
+            p['id'] = f"ai_soc_{seed}_{i}"
+            p['timestamp'] = "Just now"
+            processed.append(p)
+            
+        return processed
 
     def _analyze_news_context(self, news: List[Dict]) -> str:
         """Extract dominant theme from latest news."""

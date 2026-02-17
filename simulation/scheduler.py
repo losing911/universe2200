@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 
 from core.world import WorldManager
 from core.config import RuntimeConfig
+from core.llm_client import LLMClient, LLMConfig
 from core.universe_runtime import UniverseRuntime
 from core.activity_pipeline import ActivityPipeline
 from core.reply_pipeline import ReplyPipeline
@@ -97,7 +98,17 @@ class DailyScheduler:
             enable_real_users=False
         )
         
-        # 6. Construct Runtime
+        # 5.5 Initialize LLM Client
+        llm_config = LLMConfig(
+            provider=config.ai_provider,
+            api_key=config.ai_api_key,
+            base_url=config.ai_base_url,
+            model=config.ai_model
+        )
+        llm_client = LLMClient(llm_config) if config.ai_api_key or config.ai_base_url else None
+        
+        # Re-initialize ContentPipeline with LLM Client
+        content_pipeline = ContentPipeline(llm_client=llm_client)
         self.runtime = UniverseRuntime(
             config=config,
             world_state=self.world_manager.state,
@@ -122,7 +133,7 @@ class DailyScheduler:
             self.initialize()
         
         # 1. Run Runtime Tick (Behavior, Events, Impact)
-        self.runtime.run_tick()
+        content_data = self.runtime.run_tick()
         
         # 2. End of Day Processing
         # Cleanup social network (viral calculation, clamping)
@@ -136,7 +147,8 @@ class DailyScheduler:
         
         return {
             "date": self.world_manager.state.current_date,
-            "tick": self.runtime.tick_count
+            "tick": self.runtime.tick_count,
+            "content": content_data 
         }
     
     def run_for_days(self, num_days: int):

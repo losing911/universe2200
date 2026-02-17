@@ -9,7 +9,7 @@ import random
 from typing import Dict, Any
 
 
-def generate_news(event: Dict[str, Any], world_metrics: Dict[str, float], seed: int) -> Dict[str, Any]:
+def generate_news(event: Dict[str, Any], world_metrics: Dict[str, float], seed: int, **kwargs) -> Dict[str, Any]:
     """
     Generate a dystopian news article based on world state and event.
     
@@ -24,36 +24,79 @@ def generate_news(event: Dict[str, Any], world_metrics: Dict[str, float], seed: 
     # Create seeded RNG for determinism
     rng = random.Random(seed)
     
-    # Extract key metrics
+    # extract key metrics
     unrest = world_metrics.get('public_unrest', 0.5)
     trust = world_metrics.get('media_trust', 0.5)
     surveillance = world_metrics.get('surveillance_level', 0.5)
     corp_power = world_metrics.get('corp_power_index', 0.5)
     
     # Determine bias based on metrics
-    # High surveillance/corp power = pro-authority bias
-    # High unrest/low trust = anti-authority bias
     bias_score = (surveillance + corp_power - unrest - (1 - trust)) / 4
-    bias_score = max(-1.0, min(1.0, bias_score))  # Clamp to [-1, 1]
+    bias_score = max(-1.0, min(1.0, bias_score))
     
-    # Generate content based on event type
     event_type = event.get('type', 'unknown')
     severity = event.get('severity', 'medium')
     value = event.get('value', 0.5)
     
-    # Template banks for deterministic selection
-    headlines = _generate_headline(event_type, severity, value, unrest, bias_score, rng)
+    # Try AI generation if client is provided
+    # Note: caller must pass 'llm_client' in kwargs
+    # We use **kwargs to capture optional arguments without breaking signature
+    llm_client = kwargs.get('llm_client')
+    
+    if llm_client:
+        try:
+            ai_article = _generate_ai_news(llm_client, event, world_metrics, bias_score)
+            if ai_article:
+                return ai_article
+        except Exception as e:
+            # Fallback to templates on error
+            print(f"AI Generation failed: {e}")
+            pass
+
+    # Template fallback
+    templates = _generate_headline(event_type, severity, value, unrest, bias_score, rng)
     summary = _generate_summary(event_type, severity, value, world_metrics, bias_score, rng)
     impact_level = _determine_impact(severity, value, unrest)
     
     return {
-        "headline": headlines,
+        "headline": templates,
         "summary": summary,
         "bias_score": round(bias_score, 2),
         "impact_level": impact_level,
         "event_type": event_type,
-        "severity": severity
+        "severity": severity,
+        "source": "State Media" if bias_score > 0.3 else "Underground" if bias_score < -0.3 else "Independent"
     }
+
+def _generate_ai_news(client, event, metrics, bias_score):
+    """Generate news using LLM."""
+    system_prompt = (
+        "You are a dystopia news generator API for Universe 2200. "
+        "Generate a news article JSON based on the event and world state. "
+        "Tone should be realistic, slightly dark, and reflect the bias score "
+        "(-1.0 = anti-establishment/rebel, 1.0 = pro-state/corporate propaganda). "
+        "Return ONLY JSON."
+    )
+    
+    user_prompt = f"""
+    Event: {event.get('type')} (Severity: {event.get('severity')})
+    Metrics: Unrest={metrics.get('public_unrest'):.2f}, Trust={metrics.get('media_trust'):.2f}, Surv={metrics.get('surveillance_level'):.2f}
+    Bias: {bias_score:.2f}
+    
+    Required JSON Structure:
+    {{
+        "headline": "string",
+        "summary": "string (2-3 sentences)",
+        "bias_score": float,
+        "impact_level": "low|medium|high|critical",
+        "event_type": "string",
+        "severity": "string",
+        "source": "string"
+    }}
+    """
+    
+    return client.generate_json(system_prompt, user_prompt)
+
 
 
 def _generate_headline(event_type: str, severity: str, value: float, 

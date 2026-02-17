@@ -33,6 +33,12 @@ class RuntimeConfig:
     max_posts_per_tick: int = 20
     max_comments_per_tick: int = 5000
     
+    # AI Configuration
+    ai_provider: str = "openai"  # openai, openrouter, anthropic
+    ai_model: str = "gpt-4o-mini"
+    ai_api_key: str = ""
+    ai_base_url: str = ""  # Optional, for OpenRouter or Local LLM
+    
     def validate(self) -> None:
         """
         Validate configuration parameters.
@@ -55,3 +61,10 @@ class RuntimeConfig:
         
         if self.max_comments_per_tick <= 0:
             raise ValueError("max_comments_per_tick must be positive")
+        
+        if self.enable_ai_replies and not self.ai_api_key:
+            # Check env var if not in config
+            import os
+            if not os.getenv("LLM_API_KEY"):
+                # Warning only, don't crash
+                pass

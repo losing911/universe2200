@@ -206,9 +206,11 @@ class UniverseRuntime:
             
             print("="*50 + "\n")
             
-            # TODO: Return or persist content_output for UI/Frontend
+            # Return content output for external use (UI/API)
+            return content_output
             
         logger.debug(f"Completed tick {self.tick_count}")
+        return {}
     
     def _process_delayed_events(self):
         """Process delayed events scheduled for this tick."""
