@@ -134,6 +134,18 @@ def main():
                     snapshot_social_x = x_feed["posts"]
                     snapshot_social_insta = insta_feed["posts"]
                 else:
+                    write_public_file("public_social_x.json", {
+                        "status": "waiting_for_pipeline",
+                        "timestamp": timestamp_str,
+                        "tick": step_result["tick"],
+                        "data": []
+                    })
+                    write_public_file("public_social_insta.json", {
+                        "status": "waiting_for_pipeline",
+                        "timestamp": timestamp_str,
+                        "tick": step_result["tick"],
+                        "data": []
+                    })
                     snapshot_social_x = []
                     snapshot_social_insta = []
             except Exception as e:
