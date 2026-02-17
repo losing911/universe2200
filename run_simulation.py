@@ -104,6 +104,9 @@ def main():
                 })
                 
             # 2. Social (Dual Platform)
+            metrics = scheduler.get_current_state()['metrics']
+            news_items = content.get("news", [])
+            
             try:
                 if runtime.content_pipeline and runtime.content_pipeline.social_gen:
                     social_gen = runtime.content_pipeline.social_gen
