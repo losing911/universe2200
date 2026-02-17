@@ -41,6 +41,17 @@ class SocialMediaGenerator:
         # Analyze context from news
         news_context = self._analyze_news_context(latest_news)
         
+        # [NEW] Try AI Generation first
+        if self.llm_client and rng.random() < 0.8: # 80% chance for AI if available
+            try:
+                ai_posts_data = self._generate_ai_posts(num_posts, world_metrics, news_context, list(post_rng.getstate()))
+                if ai_posts_data:
+                    return {"posts": ai_posts_data}
+            except Exception as e:
+                print(f"AI Social Gen failed (fallback to properties): {e}")
+
+        # Fallback / Deterministic Loop
+        
         for i in range(num_posts):
             # Deterministic post seed
             post_seed = seed + i * 7919
@@ -252,3 +263,72 @@ class SocialMediaGenerator:
         
     def _calculate_sentiment(self, tone: str, author_type: str, rng: random.Random) -> float:
         return 0.0
+
+    def _generate_ai_posts(self, count: int, metrics: Dict, context: str, seed_state) -> List[Dict]:
+        """Generate posts using LLM."""
+        
+        system_prompt = (
+            "You are a social media simulator for Universe 2200, a cyberpunk dystopia. "
+            f"Generate {count} social media posts reflecting the current world state. "
+            "Mix of diverse voices: Citizens (cynical/hopeful), Corpo-Bots (propaganda), Influencers (vain), Underground (rebel). "
+            "Use slang like 'implants', 'credits', 'sectors', 'sync'. "
+            "Output JSON."
+        )
+        
+        user_prompt = f"""
+        World State:
+        - Unrest: {metrics.get('public_unrest', 0.5):.2f}/1.0
+        - Media Trust: {metrics.get('media_trust', 0.5):.2f}/1.0
+        - Corp Power: {metrics.get('corp_power_index', 0.5):.2f}/1.0
+        - Context theme: {context}
+        
+        Required JSON Structure:
+        {{
+            "posts": [
+                {{
+                    "platform": "x" or "insta",
+                    "author_type": "citizen|influencer|faction|bot|troll",
+                    "content": "string (for X) or caption (for Insta)",
+                    "image_prompt": "string (only for insta, else null)",
+                    "engagement_level": "low|medium|high|viral"
+                }}
+            ]
+        }}
+        """
+        
+        response = self.llm_client.generate_json(system_prompt, user_prompt)
+        
+        if not response or 'posts' not in response:
+            return None
+            
+        # Post-process to match internal structure
+        final_posts = []
+        rng = random.Random() # Local rng for ID generation
+        
+        for i, p in enumerate(response['posts']):
+            platform = p.get('platform', 'x').lower()
+            if platform not in ['x', 'insta']: platform = 'x'
+            
+            # Map engagement level to numbers
+            eng_level = p.get('engagement_level', 'medium')
+            likes = random.randint(0, 50)
+            if eng_level == 'medium': likes = random.randint(50, 500)
+            if eng_level == 'high': likes = random.randint(500, 5000)
+            if eng_level == 'viral': likes = random.randint(5000, 50000)
+            
+            final_posts.append({
+                "id": f"ai_{platform}_{random.randint(1000,9999)}_{i}",
+                "platform": platform,
+                "author_type": p.get('author_type', 'citizen'),
+                "timestamp": f"Tick+{i}m",
+                "engagement": {
+                    "likes": likes,
+                    "comments": int(likes * 0.1),
+                    "shares": int(likes * 0.05)
+                },
+                "content": p.get('content'),
+                "image_prompt": p.get('image_prompt'),
+                "is_ai_generated": True  # Marker for user verification
+            })
+            
+        return final_posts
