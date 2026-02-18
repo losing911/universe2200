@@ -50,6 +50,8 @@ def ensure_schema(connection):
             alter_statements.append("ADD COLUMN is_bot BOOLEAN DEFAULT FALSE")
         if 'simulation_id' not in columns:
             alter_statements.append("ADD COLUMN simulation_id VARCHAR(50) UNIQUE")
+        if 'gender' not in columns:
+            alter_statements.append("ADD COLUMN gender VARCHAR(20) DEFAULT 'unknown'")
 
         for stmt in alter_statements:
             print(f"🔄 Applying schema update: {stmt}")
@@ -91,12 +93,13 @@ def sync_users():
                 
                 # SQL Upsert
                 sql = """
-                INSERT INTO users (username, password_hash, role, display_name, avatar, bio, is_bot, simulation_id)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO users (username, password_hash, role, display_name, avatar, bio, is_bot, simulation_id, gender)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON DUPLICATE KEY UPDATE
                     display_name = VALUES(display_name),
                     avatar = VALUES(avatar),
                     bio = VALUES(bio),
+                    gender = VALUES(gender),
                     simulation_id = VALUES(simulation_id)
                 """
                 
@@ -112,7 +115,8 @@ def sync_users():
                     avatar, 
                     bio, 
                     True, 
-                    sim_id
+                    sim_id,
+                    user.get("gender", "unknown")
                 ))
                 count += 1
                 
