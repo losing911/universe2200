@@ -24,6 +24,7 @@ class UserProfile:
     handle: str
     display_name: str
     avatar: str
+    gender: str
     faction: str  # bio, augmented, synthetic, hybrid, purist
     role: str     # influencer, comedian, journalist, troll, fan, regular
     interests: List[str]
@@ -263,6 +264,7 @@ class PopulationEngine:
                 handle=identity["handle"],
                 display_name=identity["display_name"],
                 avatar=identity["avatar"],
+                gender=identity["gender"],
                 faction=faction,
                 role=role,
                 interests=interests,
@@ -356,7 +358,41 @@ class PopulationEngine:
                         })
                         ai_comment_count += 1
                 # Skip if no AI capacity
+                # Skip if no AI capacity
             else:
+                # 3. INTERACTIONS (Like / Comment / Flirt)
+                
+                # Check for Flirt Opportunity (Male -> Female)
+                # 5% chance if gender matches logic
+                is_flirt = False
+                target_user_id = target_post.get("author_id")
+                # Need to find target user object, but we only have ID here.
+                # Simplification: Random chance if user is Male
+                
+                if user.gender == "male" and action_roll < 0.10: # 10% chance for males to try flirting
+                     # We can't easily check target gender here without lookup, 
+                     # but we can try to flirt broadly or assume 50% hit rate 
+                     # (or rely on AI to handle context if enabled).
+                     # For now, let's just use a special comment category "flirt"
+                     
+                    actions.append({
+                        "type": "comment",
+                        "user_id": user.user_id,
+                        "post_id": pid,
+                        "content": daily_rng.choice([
+                            "Harika görünüyorsun! 🔥",
+                            "Bu fotoğraf çok iyi.",
+                            "DM bakabilir misin? 👀",
+                            "Vay canına...",
+                            "Tarzın çok hoş.",
+                            "Selam, tanışalım mı?"
+                        ]),
+                        "faction": user.faction,
+                        "subtype": "flirt"
+                    })
+                    continue
+
+                # Standard Interactions
                 # Likes are cheap, keep them
                 actions.append({
                     "type": "reaction",
