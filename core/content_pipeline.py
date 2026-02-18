@@ -190,17 +190,17 @@ class ContentPipeline:
         
         # Generate headline based on event type
         headlines = {
-            "unrest_critical": "BREAKING: Civil Unrest Reaches Critical Levels",
-            "unrest_spike": "Public Unrest Escalates Across Sectors",
-            "trust_lost": "Media Trust Collapses - Information Crisis Declared",
-            "trust_collapse": "Declining Media Trust Threatens Social Cohesion",
-            "information_chaos": "Information Overload: Citizens Struggle to Discern Truth",
-            "surveillance_state": "Surveillance Reaches Unprecedented Levels",
-            "corporate_dominance": "Corporate Influence Reshapes Governance",
-            "systemic_crisis": "ALERT: Multiple Systems in Critical Failure State",
+            "unrest_critical": "SON DAKİKA: Sivil Huzursuzluk Kritik Seviyeye Ulaştı",
+            "unrest_spike": "Sektörler Genelinde Huzursuzluk Tırmanıyor",
+            "trust_lost": "Medya Güveni Çöktü - Enformasyon Krizi",
+            "trust_collapse": "Medya Güvensizliği Toplumsal Düzeni Tehdit Ediyor",
+            "information_chaos": "Bilgi Karmaşası: Vatandaşlar Doğruyu Bulamıyor",
+            "surveillance_state": "Gözetim Seviyesi Rekor Düzeyde",
+            "corporate_dominance": "Şirketlerin Etkisi Yönetimi Yeniden Şekillendiriyor",
+            "systemic_crisis": "ALARM: Çoklu Sistemlerde Kritik Arıza",
         }
         
-        return headlines.get(primary["type"], "Universe 2200: Significant Developments")
+        return headlines.get(primary["type"], "Universe 2200: Önemli Gelişmeler")
     
     def _generate_news(self, events: List[Dict], metrics: Dict[str, float], 
                        tick_context: TickContext) -> List[Dict]:
@@ -235,7 +235,7 @@ class ContentPipeline:
         news_seed = tick_context.tick_seed + hash(event['type'])
         
         # Generator expects metrics dict
-        article_data = generate_news(event, metrics, news_seed)
+        article_data = generate_news(event, metrics, news_seed, llm_client=self.llm_client)
         
         return {
             "id": f"news_{event['type']}_{tick_context.tick_number}",
@@ -317,13 +317,13 @@ class ContentPipeline:
         
         # Event-based trending topics
         topic_map = {
-            "unrest_critical": {"tag": "#Unrest", "volume": "high"},
-            "unrest_spike": {"tag": "#PublicProtest", "volume": "rising"},
-            "trust_collapse": {"tag": "#MediaCrisis", "volume": "high"},
-            "trust_lost": {"tag": "#TrustNoOne", "volume": "critical"},
-            "surveillance_state": {"tag": "#Surveillance", "volume": "high"},
-            "corporate_dominance": {"tag": "#CorporateState", "volume": "rising"},
-            "information_chaos": {"tag": "#InfoOverload", "volume": "high"},
+            "unrest_critical": {"tag": "#Huzursuzluk", "volume": "high"},
+            "unrest_spike": {"tag": "#HalkProtestosu", "volume": "rising"},
+            "trust_collapse": {"tag": "#MedyaKrizi", "volume": "high"},
+            "trust_lost": {"tag": "#KimseyeGüvenme", "volume": "critical"},
+            "surveillance_state": {"tag": "#Gözetim", "volume": "high"},
+            "corporate_dominance": {"tag": "#ŞirketDevleti", "volume": "rising"},
+            "information_chaos": {"tag": "#BilgiKirliliği", "volume": "high"},
         }
         
         for event in events:
@@ -344,11 +344,11 @@ class ContentPipeline:
     def _format_metrics_report(self, metrics: Dict[str, float]) -> str:
         """Format metrics into a readable report."""
         return (
-            f"Public Unrest: {metrics['public_unrest']:.3f}\n"
-            f"Media Trust: {metrics['media_trust']:.3f}\n"
-            f"Information Noise: {metrics['information_noise']:.3f}\n"
-            f"Surveillance Level: {metrics['surveillance_level']:.3f}\n"
-            f"AI Dependency: {metrics['ai_dependency']:.3f}\n"
-            f"Corporate Power: {metrics['corp_power_index']:.3f}\n"
-            f"Market Confidence: {metrics['market_confidence']:.3f}"
+            f"Halk Huzursuzluğu: {metrics['public_unrest']:.3f}\n"
+            f"Medya Güveni: {metrics['media_trust']:.3f}\n"
+            f"Bilgi Kirliliği: {metrics['information_noise']:.3f}\n"
+            f"Gözetim Seviyesi: {metrics['surveillance_level']:.3f}\n"
+            f"Yapay Zeka Bağımlılığı: {metrics['ai_dependency']:.3f}\n"
+            f"Şirket Gücü: {metrics['corp_power_index']:.3f}\n"
+            f"Piyasa Güveni: {metrics['market_confidence']:.3f}"
         )

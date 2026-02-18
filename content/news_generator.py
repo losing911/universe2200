@@ -106,59 +106,59 @@ def _generate_headline(event_type: str, severity: str, value: float,
     
     headline_templates = {
         "unrest_critical": [
-            "Public Order Protocols Activated as Dissent Metrics Spike",
-            "Civic Compliance Index Drops to Critical Threshold",
-            "Authorities Deploy Enhanced Peacekeeping Measures",
-            "Social Stability Framework Under Unprecedented Strain"
+            "Huzursuzluk Endeksi Tavan Yaptı: Kamu Düzeni Protokolleri Devrede",
+            "Sivil Uyum Endeksi Kritik Eşiğin Altına Düştü",
+            "Yetkililer Gelişmiş Barış Gücü Önlemlerini Devreye Aldı",
+            "Toplumsal İstikrar Çerçevesi Benzeri Görülmemiş Bir Baskı Altında"
         ],
         "unrest_spike": [
-            "Rising Discontent Triggers State Response Evaluation",
-            "Public Sentiment Analysis Reveals Growing Tensions",
-            "Security Infrastructure Scales to Address Unrest Indicators",
-            "Civic Engagement Patterns Shift Toward Non-Compliance"
+            "Artan Hoşnutsuzluk Devlet Müdahalesini Tetikledi",
+            "Kamuoyu Analizleri Artan Gerilimi Ortaya Koyuyor",
+            "Güvenlik Altyapısı Huzursuzluk Göstergelerine Karşı Ölçeklendiriliyor",
+            "Sivil Katılım Modelleri Uyumsuzluğa Doğru Kayıyor"
         ],
         "trust_lost": [
-            "Information Verification Systems Report Total Confidence Collapse",
-            "Public Trust in Institutional Channels Reaches Historic Low",
-            "Media Credibility Index Enters Critical Failure Mode",
-            "Citizens Increasingly Reject Official Information Sources"
+            "Bilgi Doğrulama Sistemleri Tam Güven Çöküşü Bildiriyor",
+            "Kurumsal Kanallara Olan Kamu Güveni Tarihi Düşük Seviyede",
+            "Medya Güvenilirlik Endeksi Kritik Arıza Moduna Girdi",
+            "Vatandaşlar Resmi Bilgi Kaynaklarını Giderek Daha Fazla Reddediyor"
         ],
         "trust_collapse": [
-            "Trust Metrics Show Accelerating Decline in Media Confidence",
-            "Information Ecosystem Fragmentation Intensifies",
-            "Public Skepticism of Official Narratives Surges",
-            "Institutional Credibility Scores Drop Below Sustainable Levels"
+            "Güven Metrikleri Medya İtimadında Hızlanan Düşüşü Gösteriyor",
+            "Bilgi Ekosistemi Parçalanması Şiddetleniyor",
+            "Resmi Anlatılara Yönelik Kamuoyu Şüpheciliği Artıyor",
+            "Kurumsal Güvenilirlik Puanları Sürdürülebilir Seviyelerin Altına Düştü"
         ],
         "surveillance_state": [
-            "Enhanced Monitoring Systems Achieve Full Deployment",
-            "Security Infrastructure Expansion Declared Complete",
-            "Public Safety Network Reaches Maximum Coverage",
-            "Behavioral Analytics Integration Enters Final Phase"
+            "Gelişmiş İzleme Sistemleri Tam Dağıtıma Ulaştı",
+            "Güvenlik Altyapısı Genişlemesi Tamamlandı İlan Edildi",
+            "Kamu Güvenliği Ağı Maksimum Kapsama Alanına Ulaştı",
+            "Davranışsal Analitk Entegrasyonu Son Aşamaya Girdi"
         ],
         "corporate_dominance": [
-            "Private Sector Influence on Policy Frameworks Expands",
-            "Economic Entities Assume Greater Governance Functions",
-            "Corporate-State Partnership Model Becomes Standard",
-            "Market Forces Reshape Administrative Structures"
+            "Özel Sektörün Politika Çerçeveleri Üzerindeki Etkisi Genişliyor",
+            "Ekonomik Varlıklar Daha Fazla Yönetim İşlevi Üstleniyor",
+            "Şirket-Devlet Ortaklık Modeli Standart Hale Geldi",
+            "Piyasa Güçleri İdari Yapıları Yeniden Şekillendiriyor"
         ],
         "information_chaos": [
-            "Data Overload Metrics Exceed Processing Thresholds",
-            "Information Verification Capacity Overwhelmed",
-            "Signal-to-Noise Ratios Reach Critical Inversion",
-            "Fact-Checking Systems Struggle with Volume Surge"
+            "Veri Aşırı Yükleme Metrikleri İşleme Eşiklerini Aştı",
+            "Bilgi Doğrulama Kapasitesi Hacim Artışıyla Mücadele Ediyor",
+            "Sinyal-Gürültü Oranları Kritik Tersine Çevrilme Noktasına Ulaştı",
+            "Gerçek-Kontrol Sistemleri Hacim Dalgasıyla Mücadele Ediyor"
         ],
         "systemic_crisis": [
-            "Multiple System Failures Create Unprecedented Instability",
-            "Cascade Events Trigger Emergency Protocol Activation",
-            "Infrastructure Resilience Tests Reveal Critical Vulnerabilities",
-            "Simultaneous Challenges Strain Response Capabilities"
+            "Çoklu Sistem Arızaları Benzeri Görülmemiş İstikrarsızlık Yaratıyor",
+            "Zincirleme Olaylar Acil Durum Protokolü Aktivasyonunu Tetikledi",
+            "Altyapı Dayanıklılık Testleri Kritik Zafiyetleri Ortaya Çıkardı",
+            "Eş zamanlı Zorluklar Müdahale Yeteneklerini Zorluyor"
         ]
     }
     
     templates = headline_templates.get(event_type, [
-        "Significant Developments Reported in Metropolitan Sectors",
-        "Authorities Monitor Evolving Situation",
-        "State Systems Respond to Emerging Conditions"
+        "Metropol Sektörlerinde Önemli Gelişmeler Bildiriliyor",
+        "Yetkililer Gelişen Durumu İzliyor",
+        "Devlet Sistemleri Ortaya Çıkan Koşullara Yanıt Veriyor"
     ])
     
     # Select deterministically based on RNG
@@ -176,57 +176,57 @@ def _generate_summary(event_type: str, severity: str, value: float,
     
     summary_templates = {
         "unrest_critical": [
-            f"State monitoring systems detected public unrest levels at {value:.2f}, triggering automated response protocols. "
-            f"Officials emphasize the temporary nature of enhanced security measures. "
-            f"Citizens are advised to maintain compliance with civic order directives. "
-            f"Independent observers note the deployment of riot control infrastructure across metropolitan zones.",
+            f"Devlet izleme sistemleri, kamu huzursuzluğu seviyesini {value:.2f} olarak tespit etti ve otomatik yanıt protokollerini tetikledi. "
+            f"Yetkililer, artırılmış güvenlik önlemlerinin geçici doğasını vurguluyor. "
+            f"Vatandaşların sivil düzen direktiflerine uymaları tavsiye ediliyor. "
+            f"Bağımsız gözlemciler, metropol bölgelerinde isyan kontrol altyapısının konuşlandırıldığını belirtiyor.",
             
-            f"The unrest index reached {value:.2f} today, prompting authorities to activate emergency governance procedures. "
-            f"Public gatherings exceeding designated thresholds now require special authorization. "
-            f"State media assures citizens that stability protocols will restore normal operations. "
-            f"However, encrypted communications suggest widespread skepticism of official narratives."
+            f"Huzursuzluk endeksi bugün {value:.2f} seviyesine ulaşarak yetkilileri acil durum yönetim prosedürlerini etkinleştirmeye yöneltti. "
+            f"Belirlenen eşikleri aşan halka açık toplanmalar artık özel izin gerektiriyor. "
+            f"Devlet medyası, istikrar protokollerinin normal operasyonları geri getireceği konusunda vatandaşlara güvence veriyor. "
+            f"Ancak, şifreli iletişimler resmi anlatılara karşı yaygın bir şüphecilik olduğunu gösteriyor."
         ],
         "trust_collapse": [
-            f"Media trust metrics dropped to {value:.2f}, representing a {(1-value)*100:.0f}% erosion of public confidence. "
-            f"Institutional spokespeople attribute this to coordinated disinformation campaigns. "
-            f"New verification frameworks are being deployed to combat false narratives. "
-            f"Critics argue the measures themselves contribute to declining credibility.",
+            f"Medya güven metrikleri {value:.2f} seviyesine düştü, bu da kamu güveninde %{(1-value)*100:.0f} oranında bir erozyonu temsil ediyor. "
+            f"Kurumsal sözcüler bunu koordineli dezenformasyon kampanyalarına bağlıyor. "
+            f"Yanlış anlatılarla mücadele etmek için yeni doğrulama çerçeveleri devreye alınıyor. "
+            f"Eleştirmenler, önlemlerin güvenilirliğin azalmasına katkıda bulunduğunu savunuyor.",
             
-            f"Public faith in information channels has collapsed to {value:.2f} on the trust index. "
-            f"State-sponsored fact-checking initiatives report limited effectiveness. "
-            f"Alternative media platforms experience surge in engagement. "
-            f"Authorities warn against unverified sources while rolling out content regulation protocols."
+            f"Bilgi kanallarına olan halk inancı, güven endeksinde {value:.2f} seviyesine çöktü. "
+            f"Devlet destekli doğrulama girişimleri sınırlı etkinlik bildiriyor. "
+            f"Alternatif medya platformları etkileşimde artış yaşıyor. "
+            f"Yetkililer, içerik düzenleme protokollerini devreye alırken doğrulanmamış kaynaklara karşı uyarıda bulunuyor."
         ],
         "surveillance_state": [
-            f"The surveillance coverage index now stands at {value:.2f}, marking near-total implementation. "
-            f"Privacy advocacy groups disbanded following regulatory compliance failures. "
-            f"Officials tout crime reduction statistics as justification for expansion. "
-            f"Behavioral prediction algorithms achieve 87% accuracy in citizen activity forecasting.",
+            f"Gözetim kapsama endeksi şu anda {value:.2f} seviyesinde duruyor ve neredeyse tam uygulamayı işaret ediyor. "
+            f"Gizlilik savunuculuğu grupları, düzenleyici uyum başarısızlıklarının ardından dağıldı. "
+            f"Yetkililer, genişlemenin gerekçesi olarak suç azaltma istatistiklerini öne sürüyor. "
+            f"Davranış tahmin algoritmaları, vatandaş aktivitesi tahmininde %87 doğruluk oranı elde ediyor.",
             
-            f"Monitoring infrastructure reached {value:.2f} saturation across urban centers. "
-            f"Every public space now features integrated sensor networks and biometric tracking. "
-            f"State representatives frame this as necessary for public safety optimization. "
-            f"Dissidents increasingly rely on analog communication methods to evade detection."
+            f"İzleme altyapısı, kentsel merkezlerde {value:.2f} doygunluğuna ulaştı. "
+            f"Her kamusal alan artık entegre sensör ağları ve biyometrik takip özelliklerine sahip. "
+            f"Devlet temsilcileri bunu kamu güvenliği optimizasyonu için gerekli olarak çerçeveliyor. "
+            f"Muhalifler, tespitten kaçınmak için giderek daha fazla analog iletişim yöntemlerine güveniyor."
         ],
         "corporate_dominance": [
-            f"Corporate influence metrics climbed to {value:.2f} as private entities assume more governance roles. "
-            f"Traditional government functions increasingly outsourced to market-based solutions. "
-            f"Economic efficiency cited as primary driver of structural reorganization. "
-            f"Labor advocacy groups express concern over diminishing worker protections.",
+            f"Şirket etki metrikleri, özel kuruluşların daha fazla yönetim rolü üstlenmesiyle {value:.2f} seviyesine tırmandı. "
+            f"Geleneksel hükümet işlevleri giderek daha fazla piyasa tabanlı çözümlere devrediliyor. "
+            f"Yapısal yeniden düzenlemenin birincil itici gücü olarak ekonomik verimlilik gösteriliyor. "
+            f"Emek savunuculuğu grupları, azalan işçi korumaları konusunda endişelerini dile getiriyor.",
             
-            f"The corporate power index hit {value:.2f}, reflecting unprecedented business-state integration. "
-            f"Policy decisions now routinely defer to economic optimization models. "
-            f"Citizens report difficulty distinguishing between public and private authority. "
-            f"Critics warn of accountability gaps in the emerging hybrid governance model."
+            f"Şirket gücü endeksi, benzeri görülmemiş iş-devlet entegrasyonunu yansıtarak {value:.2f} seviyesine ulaştı. "
+            f"Politika kararları artık rutin olarak ekonomik optimizasyon modellerine erteleniyor. "
+            f"Vatandaşlar, kamu ve özel otorite arasında ayrım yapmakta zorlandıklarını bildiriyor. "
+            f"Eleştirmenler, ortaya çıkan hibrit yönetim modelindeki hesap verebilirlik boşlukları konusunda uyarıyor."
         ]
     }
     
     # Get templates or use generic
     templates = summary_templates.get(event_type, [
-        f"Monitoring systems registered significant variance in social metrics. "
-        f"State analysts continue evaluating the implications for policy frameworks. "
-        f"Citizens are encouraged to maintain normal activity patterns. "
-        f"Further updates will be provided as the situation develops."
+        f"İzleme sistemleri sosyal metriklerde önemli bir değişkenlik kaydetti. "
+        f"Devlet analistleri politika çerçeveleri üzerindeki etkileri değerlendirmeye devam ediyor. "
+        f"Vatandaşların normal aktivite modellerini sürdürmeleri teşvik ediliyor. "
+        f"Durum geliştikçe daha fazla güncelleme sağlanacaktır."
     ])
     
     # Select deterministically
