@@ -110,6 +110,19 @@ async def get_world_snapshot():
     """
     return _load_json_safe("public_snapshot.json")
 
+from core.trend_analyzer import analyze_trends
+
+@app.get("/api/trends")
+async def get_trends():
+    """
+    Get dynamic trending topics from social feed.
+    """
+    return {
+        "status": "live",
+        "timestamp": None,
+        "data": analyze_trends(limit=10)
+    }
+
 if __name__ == "__main__":
     import uvicorn
     # Local development runner
