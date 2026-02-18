@@ -41,8 +41,8 @@ class SocialMediaGenerator:
         # Analyze context from news
         news_context = self._analyze_news_context(latest_news)
         
-        # [NEW] Try AI Generation first
-        if self.llm_client and rng.random() < 0.8: # 80% chance for AI if available
+        # [NEW] Try AI Generation first (100% if available)
+        if self.llm_client: # Always use AI if client is available
             try:
                 ai_posts_data = self._generate_ai_posts(num_posts, world_metrics, news_context, list(post_rng.getstate()))
                 if ai_posts_data:
