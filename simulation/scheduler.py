@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Optional, Dict, Any
 
@@ -97,7 +98,12 @@ class DailyScheduler:
             base_seed=42,
             enable_ai_replies=True,
             enable_social_impact=True,
-            enable_real_users=False
+            enable_real_users=False,
+            # AI Config from Env
+            ai_provider=os.getenv("AI_PROVIDER", "openai"),
+            ai_model=os.getenv("AI_MODEL", "gpt-4o-mini"),
+            ai_api_key=os.getenv("LLM_API_KEY", ""),
+            ai_base_url=os.getenv("AI_BASE_URL", "")
         )
         
         # 5.5 Initialize LLM Client

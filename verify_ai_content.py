@@ -74,7 +74,20 @@ def test_ai_generation():
         client = MockLLMClient()
     else:
         # Setup Client
-        config = LLMConfig(provider="openai", api_key=api_key)
+        provider = os.getenv("AI_PROVIDER", "openai")
+        base_url = os.getenv("AI_BASE_URL", "")
+        model = os.getenv("AI_MODEL", "gpt-4o-mini")
+        
+        print(f"   Using Provider: {provider}")
+        if base_url:
+            print(f"   Using Base URL: {base_url}")
+            
+        config = LLMConfig(
+            provider=provider, 
+            api_key=api_key,
+            base_url=base_url if base_url else None,
+            model=model
+        )
         client = LLMClient(config)
     
     if not hasattr(client, 'client') and not hasattr(client, 'generate_json'):

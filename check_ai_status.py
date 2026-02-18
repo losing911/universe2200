@@ -30,6 +30,19 @@ def check_status():
         if not env_path.exists():
              print("      (File does not exist)")
 
+    # 1.5 Check Provider Config
+    print("\n1.5. Provider Configuration:")
+    provider = os.getenv("AI_PROVIDER", "openai")
+    base_url = os.getenv("AI_BASE_URL", "")
+    print(f"   AI_PROVIDER: {provider}")
+    print(f"   AI_BASE_URL: {base_url}")
+    
+    if provider == "openrouter":
+        if not base_url:
+            print("   ⚠️  AI_PROVIDER is 'openrouter' but AI_BASE_URL is not set.")
+            print("       Iterally, it should be: https://openrouter.ai/api/v1")
+            print("       (LLMClient might default to it, but explicit is better)")
+            
     # 2. Check Content Config
     print("\n2. Content Configuration:")
     config_path = project_root / "config" / "content_config.json"
@@ -62,23 +75,30 @@ def check_status():
         # Load env vars explicitly as DailyScheduler might fail to without python-dotenv in code
         config = RuntimeConfig(
              mode="simulation",
-             ai_api_key=api_key if api_key else ""
+             ai_api_key=api_key if api_key else "",
+             ai_provider=provider,
+             ai_base_url=base_url
         )
         
         print(f"   RuntimeConfig ai_api_key set: {'Yes' if config.ai_api_key else 'No'}")
+        print(f"   RuntimeConfig provider: {config.ai_provider}")
         
         # Check LLM Client Init
         from core.llm_client import LLMConfig
         llm_config = LLMConfig(
             provider=config.ai_provider,
-            api_key=config.ai_api_key
+            api_key=config.ai_api_key,
+            base_url=config.ai_base_url,
+            model=os.getenv("AI_MODEL", "gpt-4o-mini")
         )
         
         if config.ai_api_key:
             client = LLMClient(llm_config)
             if client.client:
                  print("   ✅ LLMClient initialized successfully.")
-                 print("   ✅ AI Generation should work if prompt logic is correct.")
+                 print(f"   ✅ Provider: {llm_config.provider}")
+                 if llm_config.base_url:
+                     print(f"   ✅ Base URL: {llm_config.base_url}")
             else:
                  print("   ❌ LLMClient failed to create internal client.")
         else:
@@ -94,8 +114,11 @@ def check_status():
         print("   -> Content defaulted to English templates because AI client could not initialize.")
         print("\n   FIX:")
         print(f"   1. Create a file named '.env' in: {project_root}")
-        print("   2. Add the following line to it:")
-        print("      LLM_API_KEY=your_api_key_here")
+        print("   2. Add the following lines to it:")
+        print("      AI_PROVIDER=openrouter")
+        print("      LLM_API_KEY=sk-or-your_key_here")
+        print("      AI_BASE_URL=https://openrouter.ai/api/v1")
+        print("      AI_MODEL=openai/gpt-4o-mini")
         print("   3. Run this script again to verify.")
     elif config.ai_api_key:
         print("✅ Configuration looks correct. Next step: Check actual generation logs.")
