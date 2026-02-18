@@ -104,34 +104,41 @@ def main():
                 })
                 
             # 2. Social (Dual Platform)
-            metrics = scheduler.get_current_state()['metrics']
-            news_items = content.get("news", [])
             
             try:
-                if runtime.content_pipeline and runtime.content_pipeline.social_gen:
-                    social_gen = runtime.content_pipeline.social_gen
+                # Use Real Simulation Data if available
+                if runtime.social_network:
+                    # Get global feed from the population engine results
+                    # We can use the same feed for both X and Insta for now, 
+                    # or filter by content type if we had it. 
+                    # For MVP, both get the same "Global Feed".
                     
-                    # Generate X Feed
-                    x_feed = social_gen.generate_feed(
-                        metrics, news_items, runtime.config.base_seed + runtime.tick_count, count_range=(5, 10)
-                    )
+                    global_feed = runtime.social_network.get_global_feed(limit=20)
+                    
+                    # Write to X (Twitter-like)
                     write_public_file("public_social_x.json", {
                         "status": "live",
                         "timestamp": timestamp_str,
                         "tick": step_result["tick"],
-                        "data": x_feed["posts"]
+                        "data": global_feed
                     })
                     
-                    # Generate Insta Feed
-                    insta_feed = social_gen.generate_feed(
-                        metrics, news_items, runtime.config.base_seed + runtime.tick_count + 1, count_range=(5, 10)
-                    )
+                    # Write to Insta (Visuals) - In future, filter for 'image' types
                     write_public_file("public_social_insta.json", {
                         "status": "live",
                         "timestamp": timestamp_str,
                         "tick": step_result["tick"],
-                        "data": insta_feed["posts"]
+                        "data": global_feed 
                     })
+                    
+                    snapshot_social_x = global_feed
+                    snapshot_social_insta = global_feed
+                    
+                elif runtime.content_pipeline and runtime.content_pipeline.social_gen:
+                    # FALLBACK to Random Generator if SocialNetwork is missing
+                    metrics = scheduler.get_current_state()['metrics']
+                    news_items = content.get("news", [])
+                    social_gen = runtime.content_pipeline.social_gen
                     
                     # Store for snapshot
                     snapshot_social_x = x_feed["posts"]

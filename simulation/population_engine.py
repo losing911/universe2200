@@ -9,6 +9,7 @@ import random
 import hashlib
 from dataclasses import dataclass, field
 from typing import List, Dict, Any
+from core.name_generator import NameGenerator
 
 # -------------------------------------------------------
 # 1. USER PROFILE MODEL
@@ -20,6 +21,10 @@ class UserProfile:
     Represents a synthetic user profile.
     """
     user_id: str
+    handle: str
+    display_name: str
+    avatar: str
+    faction: str  # bio, augmented, synthetic, hybrid, purist
     faction: str  # bio, augmented, synthetic, hybrid, purist
     role: str     # influencer, comedian, journalist, troll, fan, regular
     interests: List[str]
@@ -220,6 +225,7 @@ class PopulationEngine:
         
         for i in range(size):
             user_id = f"user_{i:04d}"
+            identity = NameGenerator.generate_name(seed=self.seed + i)
             
             faction = init_rng.choice(self.FACTIONS)
             
@@ -253,6 +259,10 @@ class PopulationEngine:
             
             user = UserProfile(
                 user_id=user_id,
+                handle=identity["handle"],
+                display_name=identity["display_name"],
+                avatar=identity["avatar"],
+                faction=faction,
                 faction=faction,
                 role=role,
                 interests=interests,

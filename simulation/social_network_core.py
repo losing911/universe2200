@@ -367,6 +367,34 @@ class SocialNetworkCore:
         # Return top N
         return [item[1] for item in scored_posts[:limit]]
 
+    def get_global_feed(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """
+        Get recent posts from the entire network, enriched with user data.
+        """
+        if not self.posts:
+            return []
+            
+        # Get recent posts (last N)
+        recent_posts = self.posts[-limit:]
+        
+        enriched_posts = []
+        for post in reversed(recent_posts): # Newest first
+            p_copy = post.copy()
+            
+            # Enrich with author data
+            author_id = p_copy.get("author_id")
+            if author_id and author_id in self.users:
+                user = self.users[author_id]
+                p_copy["author_handle"] = user.get("handle", author_id)
+                p_copy["author_name"] = user.get("display_name", author_id)
+                p_copy["author_avatar"] = user.get("avatar", "")
+                p_copy["author_role"] = user.get("role", "regular")
+                p_copy["author_faction"] = user.get("faction", "neutral")
+            
+            enriched_posts.append(p_copy)
+            
+        return enriched_posts
+
     def end_of_day_cleanup(self):
         """
         Consolidate daily metrics and save state.
