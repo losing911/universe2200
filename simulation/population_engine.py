@@ -25,7 +25,6 @@ class UserProfile:
     display_name: str
     avatar: str
     faction: str  # bio, augmented, synthetic, hybrid, purist
-    faction: str  # bio, augmented, synthetic, hybrid, purist
     role: str     # influencer, comedian, journalist, troll, fan, regular
     interests: List[str]
     personality_traits: List[str]
@@ -262,7 +261,6 @@ class PopulationEngine:
                 handle=identity["handle"],
                 display_name=identity["display_name"],
                 avatar=identity["avatar"],
-                faction=faction,
                 faction=faction,
                 role=role,
                 interests=interests,
