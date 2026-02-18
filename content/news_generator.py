@@ -71,27 +71,28 @@ def generate_news(event: Dict[str, Any], world_metrics: Dict[str, float], seed: 
 def _generate_ai_news(client, event, metrics, bias_score):
     """Generate news using LLM."""
     system_prompt = (
-        "You are a dystopia news generator API for Universe 2200. "
-        "Generate a news article JSON based on the event and world state. "
-        "Tone should be realistic, slightly dark, and reflect the bias score "
-        "(-1.0 = anti-establishment/rebel, 1.0 = pro-state/corporate propaganda). "
-        "Return ONLY JSON."
+        "Sen Universe 2200 evreni için distopik haber üreten bir muhabirsin. "
+        "Sadece JSON formatında çıktı ver. "
+        "Dil: Türkçe. "
+        "Ton: Ciddi, hafif karanlık, gerçekçi distopya. "
+        "YASAKLI KELİMELER (Asla kullanma): neon, glitch, siber, cyber, synth, retro, hologram. "
+        "Bu kelimeler yerine daha organik, bürokratik veya endüstriyel terimler kullan."
     )
     
     user_prompt = f"""
-    Event: {event.get('type')} (Severity: {event.get('severity')})
-    Metrics: Unrest={metrics.get('public_unrest'):.2f}, Trust={metrics.get('media_trust'):.2f}, Surv={metrics.get('surveillance_level'):.2f}
-    Bias: {bias_score:.2f}
+    Olay: {event.get('type')} (Ciddiyet: {event.get('severity')})
+    Detaylar: Huzursuzluk={metrics.get('public_unrest'):.2f}, Güven={metrics.get('media_trust'):.2f}, Gözetim={metrics.get('surveillance_level'):.2f}
+    Önyargı Skoru: {bias_score:.2f} (-1.0 = muhalif, 1.0 = devlet yanlısı)
     
-    Required JSON Structure:
+    İstenen JSON Yapısı:
     {{
-        "headline": "string",
-        "summary": "string (2-3 sentences)",
+        "headline": "Çarpıcı bir başlık",
+        "summary": "2-3 cümlelik özet",
         "bias_score": float,
         "impact_level": "low|medium|high|critical",
         "event_type": "string",
         "severity": "string",
-        "source": "string"
+        "source": "Devlet Medyası|Yeraltı|Bağımsız"
     }}
     """
     

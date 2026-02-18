@@ -268,28 +268,29 @@ class SocialMediaGenerator:
         """Generate posts using LLM."""
         
         system_prompt = (
-            "You are a social media simulator for Universe 2200, a cyberpunk dystopia. "
-            f"Generate {count} social media posts reflecting the current world state. "
-            "Mix of diverse voices: Citizens (cynical/hopeful), Corpo-Bots (propaganda), Influencers (vain), Underground (rebel). "
-            "Use slang like 'implants', 'credits', 'sectors', 'sync'. "
-            "Output JSON."
+            "Sen Universe 2200 evreni için bir sosyal medya simülatörüsün. "
+            f"Mevcut dünya durumunu yansıtan {count} adet sosyal medya gönderisi oluştur. "
+            "Farklı sesler kullan: Vatandaşlar (alaycı/umutlu), Şirket Botları (propaganda), Fenomenler (kibirli), Yeraltı (asi). "
+            "YASAKLI KELİMELER (Asla kullanma): neon, glitch, siber, cyber, synth, retro, hologram. "
+            "Daha yerel ve distopik argolar kullan: 'çip', 'kredi', 'bölge', 'senkron', 'şebeke'. "
+            "Sadece JSON çıktısı ver."
         )
         
         user_prompt = f"""
-        World State:
-        - Unrest: {metrics.get('public_unrest', 0.5):.2f}/1.0
-        - Media Trust: {metrics.get('media_trust', 0.5):.2f}/1.0
-        - Corp Power: {metrics.get('corp_power_index', 0.5):.2f}/1.0
-        - Context theme: {context}
+        Dünya Durumu:
+        - Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f}/1.0
+        - Medya Güveni: {metrics.get('media_trust', 0.5):.2f}/1.0
+        - Şirket Gücü: {metrics.get('corp_power_index', 0.5):.2f}/1.0
+        - Bağlam teması: {context}
         
-        Required JSON Structure:
+        İstenen JSON Yapısı:
         {{
             "posts": [
                 {{
-                    "platform": "x" or "insta",
+                    "platform": "x" veya "insta",
                     "author_type": "citizen|influencer|faction|bot|troll",
-                    "content": "string (for X) or caption (for Insta)",
-                    "image_prompt": "string (only for insta, else null)",
+                    "content": "metin (X için) veya açıklama (Insta için)",
+                    "image_prompt": "görsel tarifi (sadece insta için, yoksa null)",
                     "engagement_level": "low|medium|high|viral"
                 }}
             ]
@@ -312,6 +313,7 @@ class SocialMediaGenerator:
             # Map engagement level to numbers
             eng_level = p.get('engagement_level', 'medium')
             likes = random.randint(0, 50)
+            if eng_level == 'low': likes = random.randint(0, 50)
             if eng_level == 'medium': likes = random.randint(50, 500)
             if eng_level == 'high': likes = random.randint(500, 5000)
             if eng_level == 'viral': likes = random.randint(5000, 50000)
