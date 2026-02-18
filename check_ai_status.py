@@ -13,21 +13,28 @@ from simulation.scheduler import DailyScheduler
 from core.llm_client import LLMClient
 
 def check_status():
-    print("🔍 DIAGNOSTIC: Checking AI Content Generation Status\n")
+    print(f"   Project Root: {project_root}")
     
     # 1. Check Environment Variables
-    print("1. Environment Variables:")
-    load_dotenv(project_root / ".env")
+    print("\n1. Environment Variables:")
+    env_path = project_root / ".env"
+    load_dotenv(env_path)
     api_key = os.getenv("LLM_API_KEY") or os.getenv("OPENAI_API_KEY")
+    
     if api_key:
         masked_key = f"{api_key[:8]}...{api_key[-4:]}"
         print(f"   ✅ LLM_API_KEY found: {masked_key}")
     else:
-        print("   ❌ LLM_API_KEY NOT found in environment.")
+        print(f"   ❌ LLM_API_KEY NOT found in environment.")
+        print(f"      Checked file: {env_path}")
+        if not env_path.exists():
+             print("      (File does not exist)")
 
     # 2. Check Content Config
     print("\n2. Content Configuration:")
     config_path = project_root / "config" / "content_config.json"
+    print(f"   Checking config at: {config_path}")
+    
     if config_path.exists():
         try:
             with open(config_path, "r") as f:
@@ -46,7 +53,8 @@ def check_status():
     
     # Initialize Scheduler (this is what run_simulation.py does)
     try:
-        scheduler = DailyScheduler(data_dir=str(project_root / "data"))
+        data_dir = project_root / "data"
+        scheduler = DailyScheduler(data_dir=str(data_dir))
         
         # Manually trigger init logic to see what config gets
         # Note: We simulate what scheduler.initialize() does for config
@@ -85,7 +93,7 @@ def check_status():
         print("❌ CRITICAL: Missing LLM_API_KEY environment variable.")
         print("   -> Content defaulted to English templates because AI client could not initialize.")
         print("\n   FIX:")
-        print("   1. Create a file named '.env' in: c:\\Users\\pc\\Desktop\\core\\universe_2200")
+        print(f"   1. Create a file named '.env' in: {project_root}")
         print("   2. Add the following line to it:")
         print("      LLM_API_KEY=your_api_key_here")
         print("   3. Run this script again to verify.")
