@@ -122,47 +122,47 @@ class SocialMediaGenerator:
         """Generate text-heavy content for X."""
         templates = {
             "influencer": [
-                "Just dropped new merch. Link in bio. #cyberfashion",
-                "Why is everyone so negative? Good vibes only ✨",
-                "Collaboration with @CorpTech coming soon!",
-                "Honestly, Sector 4 has the best lighting."
+                "Yeni koleksiyon çıktı. Link biyoda. #siberpunkmoda",
+                "Neden herkes bu kadar negatif? Sadece iyi hisler ✨",
+                "@CorpTech ile iş birliği çok yakında!",
+                "Dürüst olmak gerekirse, Sektör 4'ün ışıklandırması en iyisi."
             ],
             "troll": [
-                "L + ratio + you have no implants.",
-                "Imagine trusting the media in 2200 💀",
-                "Nobody asked.",
-                "This ain't it chief.",
-                "Dead internet theory is real and you are all bots."
+                "L + oran + implantın yok.",
+                "2200'de medyaya güvenmek mi? 💀",
+                "Kimse sormadı.",
+                "Bu olmamış şef.",
+                "Ölü internet teorisi gerçek ve hepiniz botsunuz."
             ],
             "comedian": [
-                "My auto-pet just tried to unionize.",
-                "Dating in 2200 is just comparing credit scores.",
-                "Who called it 'Cyberpunk' and not 'High Tech Low Life'?",
-                "I wish I could update my drivers as easily as I update my anxiety."
+                "Otomatik evcil hayvanım sendikalaşmaya çalıştı.",
+                "2200'de flört etmek sadece kredi puanlarını karşılaştırmaktan ibaret.",
+                "Buna kim 'Siberpunk' dedi, 'Yüksek Teknoloji Sefil Hayat' değil miydi?",
+                "Keşke anksiyetemi sürücülerimi güncellediğim kadar kolay güncelleyebilsem."
             ],
             "citizen": [
-                "Traffic is terrible today.",
-                "Did anyone else hear that loud bang?",
-                "Just want affordable synthetic meat.",
-                "Work, sleep, recharge, repeat."
+                "Bugün trafik berbat.",
+                "O yüksek sesi duyan oldu mu?",
+                "Sadece uygun fiyatlı sentetik et istiyorum.",
+                "Çalış, uyu, şarj ol, tekrar et."
             ],
             "faction": [
-                "Unity is strength.",
-                "Report verified anomalies.",
-                "The future is secure.",
-                "Compliance ensures safety."
+                "Birlik güçtür.",
+                "Doğrulanmış anormallikleri bildirin.",
+                "Gelecek güvende.",
+                "Uyum güvenliği sağlar."
             ],
             "media": [
-                "BREAKING: Market volatility detected.",
-                "Weather alert: Acid rain expected.",
-                "Top 10 ways to upgrade your optics.",
-                "Interview with the Director tonight."
+                "SON DAKİKA: Piyasa oynaklığı tespit edildi.",
+                "Hava durumu uyarısı: Asit yağmuru bekleniyor.",
+                "Optiklerinizi yükseltmenin en iyi 10 yolu.",
+                "Bu gece Direktör ile röportaj."
             ],
             "bot": [
-                "Buy crypto srip now! 500% gains!",
-                "[AUTO-REPLY] Message received.",
-                "#Trend #Viral #News",
-                "Click here for free credits."
+                "Kripto srip'i şimdi al! %500 kazanç!",
+                "[OTO-YANIT] Mesaj alındı.",
+                "#Trend #Viral #Haber",
+                "Ücretsiz krediler için buraya tıkla."
             ]
         }
         
@@ -172,8 +172,8 @@ class SocialMediaGenerator:
         
         # Context Injection
         if rng.random() < 0.3:
-            if context == "unrest": text += " Stay safe out there."
-            if context == "trust": text += " Don't believe everything you read."
+            if context == "unrest": text += " Dışarıda güvende kalın."
+            if context == "trust": text += " Okuduğunuz her şeye inanmayın."
             
         return {
             "content": text,
@@ -195,13 +195,13 @@ class SocialMediaGenerator:
         }
         
         captions = {
-            "influencer": ["Living my best life ✨", "No filter needed", "City of dreams 🌃", "Mood."],
-            "citizen": ["Monday blues.", "Comfort food.", "Views.", "My little sanctuary."],
-            "faction": ["Strength.", "Order.", "Progress.", "Duty."],
-            "media": ["Update.", "swipe for more ->", "Link in bio.", "Daily briefing."],
-            "bot": ["Follow for more.", "Amazing view!", "Check this out.", "Wow."],
-            "comedian": ["Me rn.", "Why is this true?", "Tag a friend.", "Lol."],
-            "troll": ["Cringe.", "Look at this dude.", "Who did this?", "💀"]
+            "influencer": ["En iyi hayatımı yaşıyorum ✨", "Filtreye gerek yok", "Rüyalar şehri 🌃", "Mod."],
+            "citizen": ["Pazartesi sendromu.", "Rahatlatıcı yemek.", "Manzara.", "Benim küçük sığınağım."],
+            "faction": ["Güç.", "Düzen.", "İlerleme.", "Görev."],
+            "media": ["Güncelleme.", "devamı için kaydır ->", "Link biyoda.", "Günlük brifing."],
+            "bot": ["Daha fazlası için takip et.", "Harika manzara!", "Buna bir bak.", "Vay canına."],
+            "comedian": ["Şu an ben.", "Bu neden bu kadar doğru?", "Bir arkadaşını etiketle.", "Lol."],
+            "troll": ["Utanç verici.", "Şuna bak.", "Bunu kim yaptı?", "💀"]
         }
         
         prompt = visual_prompts.get(author_type, "Cyberpunk city scene")
