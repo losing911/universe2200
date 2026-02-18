@@ -19,6 +19,11 @@ import json
 import logging
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
 from simulation.scheduler import DailyScheduler
 from core.snapshot_manager import SnapshotManager
 
