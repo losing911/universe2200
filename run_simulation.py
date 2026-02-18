@@ -39,7 +39,7 @@ DATA_DIR = Path("data")
 PUBLIC_DIR = DATA_DIR / "public"
 PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 
-TICK_INTERVAL = 1.0  # Seconds per tick (Process A speed)
+TICK_INTERVAL = 300.0  # Seconds per tick (Process A speed)
 SNAPSHOT_INTERVAL = 50  # Ticks per snapshot
 
 def write_public_file(filename: str, data: dict):
