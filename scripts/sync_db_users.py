@@ -96,6 +96,20 @@ def sync_users():
                 avatar = user.get("avatar", "")
                 bio = f"Role: {user.get('role', 'Citizen')} | Faction: {user.get('faction', 'Neutral')}"
                 
+                # Fallback Generation if Handle/Gender missing (Fix for existing JSON)
+                if not handle or handle == f"@{sim_id}":
+                    # Generate a temp identity on the fly
+                    import random
+                    from core.name_generator import NameGenerator
+                    seed = int(sim_id.split("_")[1]) if "_" in sim_id else random.randint(0, 10000)
+                    identity = NameGenerator.generate_name(seed=seed)
+                    
+                    handle = identity["handle"].replace("@", "")
+                    display_name = identity["display_name"]
+                    avatar = identity["avatar"]
+                    user["gender"] = identity["gender"] # Update dict for gender access below
+                    print(f"   ⚠️  Regenerated identity for {sim_id}: {handle}")
+
                 # SQL Upsert
                 sql = """
                 INSERT INTO users (username, password_hash, role, display_name, avatar, bio, is_bot, simulation_id, gender)

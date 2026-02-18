@@ -159,6 +159,9 @@ class SocialNetworkCore:
                             if rng.random() < 0.3:
                                 self.relationships[uid][t] = "friend"
                                 self.relationships[t][uid] = "friend"
+                                
+        # Persistence: Save immediately after ingestion to ensure identity upgrades are stored
+        self.save_state()
 
     def generate_relationship_events(self, tick: int) -> List[Dict]:
         """
