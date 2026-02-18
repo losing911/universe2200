@@ -57,8 +57,33 @@ class DailyScheduler:
         comment_manager = CommentManager(self.data_dir)
         reply_manager = ReplyManager(self.data_dir)
         
+        # 2a. Runtime Config (Moved up for LLM Init)
+        config = RuntimeConfig(
+            mode="simulation",
+            tick_interval_seconds=0,  # We run manually
+            base_seed=42,
+            enable_ai_replies=True,
+            enable_social_impact=True,
+            enable_real_users=False,
+            # AI Config from Env
+            ai_provider=os.getenv("AI_PROVIDER", "openai"),
+            ai_model=os.getenv("AI_MODEL", "gpt-4o-mini"),
+            ai_api_key=os.getenv("LLM_API_KEY", ""),
+            ai_base_url=os.getenv("AI_BASE_URL", "")
+        )
+        
+        # 2b. Initialize LLM Client
+        llm_config = LLMConfig(
+            provider=config.ai_provider,
+            api_key=config.ai_api_key,
+            base_url=config.ai_base_url,
+            model=config.ai_model
+        )
+        llm_client = LLMClient(llm_config) if config.ai_api_key or config.ai_base_url else None
+        
         # 3. Engines
-        population_engine = PopulationEngine(size=1000)  # Default size
+        # Pass LLM Client to PopulationEngine for "Real AI Users"
+        population_engine = PopulationEngine(size=1000, llm_client=llm_client)
         
         # Ingest population into Social Network
         print("   Population ingested into Social Network.")
@@ -88,32 +113,6 @@ class DailyScheduler:
             reply_manager=reply_manager,
             comment_manager=comment_manager
         )
-        
-        content_pipeline = ContentPipeline()
-        
-        # 5. Create RuntimeConfig
-        config = RuntimeConfig(
-            mode="simulation",
-            tick_interval_seconds=0,  # We run manually
-            base_seed=42,
-            enable_ai_replies=True,
-            enable_social_impact=True,
-            enable_real_users=False,
-            # AI Config from Env
-            ai_provider=os.getenv("AI_PROVIDER", "openai"),
-            ai_model=os.getenv("AI_MODEL", "gpt-4o-mini"),
-            ai_api_key=os.getenv("LLM_API_KEY", ""),
-            ai_base_url=os.getenv("AI_BASE_URL", "")
-        )
-        
-        # 5.5 Initialize LLM Client
-        llm_config = LLMConfig(
-            provider=config.ai_provider,
-            api_key=config.ai_api_key,
-            base_url=config.ai_base_url,
-            model=config.ai_model
-        )
-        llm_client = LLMClient(llm_config) if config.ai_api_key or config.ai_base_url else None
         
         # Re-initialize ContentPipeline with LLM Client
         content_pipeline = ContentPipeline(llm_client=llm_client)

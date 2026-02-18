@@ -183,15 +183,17 @@ class PopulationEngine:
         "Fabricated narrative.", "Don't believe them.", "Hidden agenda.", "Smoke and mirrors."
     ]
 
-    def __init__(self, size: int = 1000, seed: int = 42):
+    def __init__(self, size: int = 1000, seed: int = 42, llm_client=None):
         """
         Initialize population engine.
         
         Args:
             size: Number of users (default 1000)
             seed: Random seed for determinism (default 42)
+            llm_client: Optional LLMClient for AI generation
         """
         self.seed = seed
+        self.llm_client = llm_client
         self.population: List[UserProfile] = []
         
         # Generate population immediately
@@ -276,29 +278,13 @@ class PopulationEngine:
     def generate_daily_actions(self, world_state: Dict[str, float], posts: List[Dict], tick_seed: int = None) -> List[Dict]:
         """
         Generate structured actions with realistic social media distributions.
-        
-        Distribution:
-        - 60% passive (no action)
-        - 30% reaction (like)
-        - 8% comment
-        - 2% create post
-        
-        Args:
-            world_state: Metrics dict
-            posts: Available posts
-            tick_seed: Deterministic seed (REQUIRED for runtime execution)
-            
-        Returns:
-            List of action dictionaries
         """
         actions = []
         
-        # RNG Setup - ALWAYS use tick_seed for deterministic runtime execution
-        # Fallback to _create_daily_rng only for standalone testing
+        # RNG Setup
         if tick_seed is not None:
             daily_rng = random.Random(tick_seed)
         else:
-            # Fallback for manual/test calls without tick_seed
             daily_rng = self._create_daily_rng(world_state, posts)
             
         # Extract world metrics
@@ -306,110 +292,72 @@ class PopulationEngine:
         media_trust = world_state.get("media_trust", 0.5)
         surveillance = world_state.get("surveillance_level", 0.0)
         
-        for user in self.population:
-            # ---------------------------------------------------
-            # HIERARCHICAL ACTION DECISION
-            # ---------------------------------------------------
-            # Base activity probability influenced by user's activity_level
-            # This determines IF they do anything at all today
-            
+        # Limit total AI calls per tick to prevent timeouts (e.g. 5 posts, 15 comments)
+        ai_post_count = 0
+        ai_comment_count = 0
+        MAX_AI_POSTS = 5
+        MAX_AI_COMMENTS = 15
+        
+        # Shuffle population to give everyone a chance
+        active_population = list(self.population)
+        daily_rng.shuffle(active_population)
+        
+        for user in active_population:
+            # Base activity probability
             base_activity = user.activity_level
-            
-            # Surveillance dampens activity
             if surveillance > 0.5:
                 base_activity *= (1.0 - surveillance * 0.3)
             
-            # Roll to see if user is active today
             if daily_rng.random() > base_activity:
-                # 60%+ of users are passive (lurkers)
                 continue
             
-            # User is active - decide what action
-            # Distribution: 75% reaction, 20% comment, 5% post
-            # (These are conditional on being active)
-            
+            # Action Roll
             action_roll = daily_rng.random()
             
-            # ---------------------------------------------------
-            # 1. CREATE POST (5% of active users = ~2% overall)
-            # ---------------------------------------------------
+            # 1. CREATE POST
             if action_roll < 0.05:
-                # Calculate category weights with world modifiers
-                cat_weights = []
+                if self.llm_client and ai_post_count < MAX_AI_POSTS:
+                    # Generate AI Post
+                    content, category = self._generate_ai_post_content(user, world_state, daily_rng)
+                    if content:
+                        actions.append({
+                            "type": "create_post",
+                            "user_id": user.user_id,
+                            "category": category,
+                            "content": content,
+                            "timestamp": "now",
+                            "is_ai": True
+                        })
+                        ai_post_count += 1
+                # If no AI client or limit reached, we SKIP generating a post (User request: No Templates)
+                # Alternatively, we could fallback, but user was strict. 
+                # For "simulation" continuity, we might want minimal fallback, but I'll respect strict "No Templates" for now on posts.
+                continue
                 
-                for cat in self.POST_CATEGORIES:
-                    base_weight = self.CATEGORY_WEIGHTS.get(cat, 0.01)
-                    
-                    # World State Modifiers
-                    if cat == "political":
-                        if public_unrest > 0.6:
-                            base_weight += 0.05  # +5% for political
-                        if surveillance > 0.7:
-                            base_weight *= 0.5   # -50% silencing effect
-                    
-                    if cat == "conspiracy":
-                        if media_trust < 0.3:
-                            base_weight += 0.05  # +5% for conspiracy
-                    
-                    cat_weights.append(base_weight)
-                
-                # Normalize weights
-                total_weight = sum(cat_weights)
-                if total_weight > 0:
-                    cat_weights = [w / total_weight for w in cat_weights]
-                
-                # Select category
-                category = daily_rng.choices(self.POST_CATEGORIES, weights=cat_weights, k=1)[0]
-                
-                # Select content
-                content_list = self.CONTENT_BANKS.get(category, ["Generic content."])
-                content = daily_rng.choice(content_list)
-                
-                actions.append({
-                    "type": "create_post",
-                    "user_id": user.user_id,
-                    "category": category,
-                    "content": content,
-                    "timestamp": "now"
-                })
-                continue  # One action per day
-                
-            # ---------------------------------------------------
-            # 2. INTERACT WITH EXISTING POSTS
-            # ---------------------------------------------------
+            # 2. INTERACT
             if not posts:
                 continue
             
-            # Select a random post to interact with
             target_post = daily_rng.choice(posts)
             pid = target_post.get("id", "unknown")
             
-            # 20% comment (of active users)
             if action_roll < 0.25:
-                # Determine sentiment
-                sentiment = "neutral"
-                if user.aggression_level > 0.7:
-                    sentiment = "aggressive"
-                elif user.trust_in_media < 0.3 or media_trust < 0.3:
-                    sentiment = "distrust"
-                
-                # Pick content
-                if sentiment == "aggressive":
-                    txt = daily_rng.choice(self.COMMENTS_AGGRESSIVE)
-                elif sentiment == "distrust":
-                    txt = daily_rng.choice(self.COMMENTS_DISTRUST)
-                else:
-                    txt = daily_rng.choice(self.COMMENTS_NEUTRAL)
-                    
-                actions.append({
-                    "type": "comment",
-                    "user_id": user.user_id,
-                    "post_id": pid,
-                    "content": txt,
-                    "faction": user.faction
-                })
+                if self.llm_client and ai_comment_count < MAX_AI_COMMENTS:
+                    # Generate AI Comment
+                    comment_text = self._generate_ai_comment_content(user, target_post, world_state)
+                    if comment_text:
+                        actions.append({
+                            "type": "comment",
+                            "user_id": user.user_id,
+                            "post_id": pid,
+                            "content": comment_text,
+                            "faction": user.faction,
+                            "is_ai": True
+                        })
+                        ai_comment_count += 1
+                # Skip if no AI capacity
             else:
-                # 75% reaction (like) - most common action
+                # Likes are cheap, keep them
                 actions.append({
                     "type": "reaction",
                     "reaction": "like",
@@ -418,6 +366,59 @@ class PopulationEngine:
                 })
 
         return actions
+
+    def _generate_ai_post_content(self, user: UserProfile, world_state: Dict, rng: random.Random):
+        """Generate a post using LLM."""
+        category = rng.choice(self.POST_CATEGORIES)
+        
+        system_prompt = (
+            f"Sen {user.handle} adında bir sosyal medya kullanıcısısın. "
+            f"Rolün: {user.role}. İlgi alanların: {', '.join(user.interests)}. "
+            f"Kişilik özelliklerin: {', '.join(user.personality_traits)}. "
+            f"Siyasi Görüş: {'Muhalif' if user.political_bias < 0.4 else 'Sadık' if user.political_bias > 0.6 else 'Nötr'}. "
+            f"Dil: Türkçe. Kısa, doğal, tweet tarzı yaz. Hashtag kullanabilirsin. "
+            f"YASAKLI KELİMELER: neon, glitch, siber, cyber, hologram."
+        )
+        
+        user_prompt = (
+            f"Konu: {category}. "
+            f"Dünya Durumu: Huzursuzluk {world_state.get('public_unrest', 0.5):.1f}, Güven {world_state.get('media_trust', 0.5):.1f}. "
+            f"Bu durum hakkında kısa bir gönderi yaz."
+        )
+        
+        try:
+            # We use generate_text for speed/simplicity instead of strict JSON for single strings
+            content = self.llm_client.generate_text(system_prompt, user_prompt)
+            if content:
+                return content.strip().replace('"', ''), category
+        except Exception as e:
+            print(f"AI Post Gen failed: {e}")
+            
+        return None, category
+
+    def _generate_ai_comment_content(self, user: UserProfile, target_post: Dict, world_state: Dict):
+        """Generate a comment using LLM."""
+        post_content = target_post.get('content', '')
+        
+        system_prompt = (
+            f"Sen {user.handle} adında bir kullanıcısın. "
+            f"Kişilik: {', '.join(user.personality_traits)}. "
+            f"Dil: Türkçe. Çok kısa, doğal bir yorum yaz (max 10 kelime). "
+        )
+        
+        user_prompt = (
+            f"Şu gönderiye yorum yap: '{post_content}'\n"
+            f"Senin görüşün: {'Destekle' if user.political_bias > 0.5 else 'Eleştir'}."
+        )
+        
+        try:
+            content = self.llm_client.generate_text(system_prompt, user_prompt)
+            if content:
+                return content.strip().replace('"', '')
+        except Exception:
+            pass
+            
+        return None
 
     def generate_daily_activity(self, *args, **kwargs) -> List[Dict]:
         """Wrapper ensuring legacy calls still work but return new format."""
