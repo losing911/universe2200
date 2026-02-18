@@ -4,20 +4,8 @@ import json
 from pathlib import Path
 
 # Add project root to path
-project_root = Path(r"c:\Users\pc\Desktop\core\universe_2200")
-sys.path.append(str(project_root))
-
-from core.llm_client import LLMClient, LLMConfig
-from content.ai_generator import AIContentGenerator
-from content.social_media_generator import SocialMediaGenerator
-import os
-import sys
-import json
-from pathlib import Path
-from datetime import datetime
-
 # Add project root to path
-project_root = Path(r"c:\Users\pc\Desktop\core\universe_2200")
+project_root = Path(__file__).parent.absolute()
 sys.path.append(str(project_root))
 
 from core.llm_client import LLMClient, LLMConfig
