@@ -15,9 +15,13 @@ from content.social_media_generator import SocialMediaGenerator
 def test_ai_generation():
     print("🧪 Verifying AI Content Generation...")
     
+    # Load .env explicitly
+    from dotenv import load_dotenv
+    load_dotenv(project_root / ".env")
+    
     # Check API Key
     api_key = os.getenv("LLM_API_KEY")
-    
+
     # MOCK CLIENT if no API key
     if not api_key:
         print("⚠️  No API Key found. Using MOCK Client to verify prompt logic.")
@@ -28,16 +32,22 @@ def test_ai_generation():
                 
             def generate_json(self, system, user):
                 print(f"\n[MOCK] System Prompt:\n{system}")
-                print(f"[MOCK] User Prompt:\n{user}")
+                # print(f"[MOCK] User Prompt:\n{user}")
                 
                 # Validation checks for strict constraints
                 forbidden_words = ["neon", "glitch", "siber", "cyber", "synth", "retro", "hologram"]
                 found_system = [w for w in forbidden_words if w in system.lower()]
+                
+                # The prompt SHOULD contain forbidden words (to forbid them)
                 if found_system:
-                     print(f"❌ ERROR: System prompt contains forbidden words: {found_system}")
+                     print(f"✅ System prompt correctly includes forbidden words list.")
+                else:
+                     print(f"⚠️  WARNING: System prompt does NOT explicitly list forbidden words.")
                 
                 if "türkçe" not in system.lower():
                      print(f"❌ ERROR: Protocol does not match 'Turkish' requirement")
+                else:
+                     print(f"✅ Protocol matches 'Turkish' requirement")
                 
                 # Retuen dummy response
                 if "haber" in system.lower():

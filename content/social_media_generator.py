@@ -273,6 +273,7 @@ class SocialMediaGenerator:
             "Farklı sesler kullan: Vatandaşlar (alaycı/umutlu), Şirket Botları (propaganda), Fenomenler (kibirli), Yeraltı (asi). "
             "YASAKLI KELİMELER (Asla kullanma): neon, glitch, siber, cyber, synth, retro, hologram. "
             "Daha yerel ve distopik argolar kullan: 'çip', 'kredi', 'bölge', 'senkron', 'şebeke'. "
+            "Dil: Türkçe. "
             "Sadece JSON çıktısı ver."
         )
         
