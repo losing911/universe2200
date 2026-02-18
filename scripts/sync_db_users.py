@@ -83,8 +83,13 @@ def sync_users():
                 # display_name -> display_name
                 # avatar -> avatar
                 
+                if count == 0:
+                     print(f"DEBUG: First user object: {user}")
+
                 handle = user.get("handle", "").replace("@", "")
-                if not handle: continue
+                if not handle: 
+                    if count < 5: print(f"Skipping user with no handle: {user.get('user_id')}")
+                    continue
                 
                 sim_id = user.get("id")
                 display_name = user.get("display_name", handle)

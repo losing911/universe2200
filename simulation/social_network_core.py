@@ -100,6 +100,10 @@ class SocialNetworkCore:
                     "interests": getattr(p_user, "interests", []),
                     "traits": getattr(p_user, "personality_traits", []),
                     "joined_date": datetime.now().strftime("%Y-%m-%d"),
+                    "handle": getattr(p_user, "handle", user_id),
+                    "display_name": getattr(p_user, "display_name", user_id),
+                    "avatar": getattr(p_user, "avatar", ""),
+                    "gender": getattr(p_user, "gender", "unknown"),
                     "followers_count": 0, # Calculated dynamically now
                     "clout_score": 0.1,  # 0.0 to 1.0 (Influence)
                     "lifetime_posts": 0,
@@ -114,6 +118,11 @@ class SocialNetworkCore:
                  # Update dynamic fields
                  self.users[user_id]["role"] = getattr(p_user, "role", "regular")
                  self.users[user_id]["interests"] = getattr(p_user, "interests", [])
+                 # Also update identity if changed (e.g. avatar update)
+                 self.users[user_id]["handle"] = getattr(p_user, "handle", self.users[user_id].get("handle"))
+                 self.users[user_id]["display_name"] = getattr(p_user, "display_name", self.users[user_id].get("display_name"))
+                 self.users[user_id]["avatar"] = getattr(p_user, "avatar", self.users[user_id].get("avatar"))
+                 self.users[user_id]["gender"] = getattr(p_user, "gender", self.users[user_id].get("gender"))
                  
         # Initialize Relationships for new users (Simple Small World Model)
         user_ids = list(self.users.keys())
