@@ -17,6 +17,7 @@ from core.activity_pipeline import ActivityPipeline
 from core.reply_pipeline import ReplyPipeline
 from core.impact_pipeline import ImpactPipeline
 from core.content_pipeline import ContentPipeline
+from core.db_loader import DBLoader
 
 # Configure logging
 logger = logging.getLogger("UniverseRuntime")
@@ -79,6 +80,7 @@ class UniverseRuntime:
         self.drama_engine = drama_engine # New Drama Component
         self.event_scheduler = event_scheduler
         self.social_generator = social_generator # New component for feed generation
+        self.db_loader = DBLoader() # Initialize DB Loader
         
         # Runtime State
         self.running = False
@@ -189,10 +191,15 @@ class UniverseRuntime:
         # but for now we run it and print the headline/news.
         if self.content_pipeline:
             logger.debug("Running ContentPipeline")
+            
+            # [NEW] Fetch Real DB Users
+            db_users = self.db_loader.fetch_users()
+            
             content_output = self.content_pipeline.run(
                 tick_context=tick_ctx,
                 world_state=self.world_state,
-                recent_posts=posts
+                recent_posts=posts,
+                active_users=db_users # Inject DB users
             )
             
             # Run Drama Engine

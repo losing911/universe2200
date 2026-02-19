@@ -50,7 +50,8 @@ class ContentPipeline:
     def run(self, 
             tick_context: TickContext,
             world_state,
-            recent_posts: List[Dict] = None) -> Dict[str, Any]:
+            recent_posts: List[Dict] = None,
+            active_users: List[Dict] = None) -> Dict[str, Any]:
         """
         Generate content based on current world state.
         
@@ -58,6 +59,7 @@ class ContentPipeline:
             tick_context: Current tick context (for determinism)
             world_state: WorldState instance (read-only)
             recent_posts: Optional list of recent social posts for context
+            active_users: Optional list of real DB users to include
             
         Returns:
             Structured content output as dictionary
@@ -72,7 +74,7 @@ class ContentPipeline:
         
         # Generate content based on events
         news_articles = self._generate_news(events, metrics, tick_context)
-        social_posts = self._generate_social_posts(events, metrics, tick_context, news_items=news_articles)
+        social_posts = self._generate_social_posts(events, metrics, tick_context, news_items=news_articles, active_users=active_users)
         trending_topics = self._generate_trending_topics(events, metrics)
         
         # Generate headline
@@ -251,25 +253,31 @@ class ContentPipeline:
         }
     
     def _generate_social_posts(self, events: List[Dict], metrics: Dict[str, float],
-                               tick_context: TickContext, news_items: List[Dict] = None) -> List[Dict]:
+                               tick_context: TickContext, news_items: List[Dict] = None,
+                               active_users: List[Dict] = None) -> List[Dict]:
         """Generate social media posts reflecting public sentiment."""
         
         # Use deterministic seed for social feed
         feed_seed = tick_context.tick_seed + 999
         
-        # Get active users if available
-        active_users = []
+        # Combine Sim Users + DB Users
+        all_users = []
+        
+        # 1. Sim Users (if cached/loaded)
         if self.social_network and self.social_network.users:
-            active_users = list(self.social_network.users.values())
+            all_users.extend(list(self.social_network.users.values()))
+            
+        # 2. DB Users (passed in)
+        if active_users:
+            all_users.extend(active_users)
         
         # Generate feed using SocialMediaGenerator
-        # It handles tone, content, and engagement based on metrics/news
         feed_data = self.social_gen.generate_feed(
             world_metrics=metrics,
             latest_news=news_items or [],
             seed=feed_seed,
             count_range=(5, 10),
-            users=active_users
+            users=all_users # Pass combined list
         )
         
         return feed_data["posts"]
