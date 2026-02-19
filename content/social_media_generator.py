@@ -292,36 +292,46 @@ class SocialMediaGenerator:
     def _calculate_sentiment(self, tone: str, author_type: str, rng: random.Random) -> float:
         return 0.0
 
+    def _describe_metric(self, value: float, low_desc: str, high_desc: str) -> str:
+        """Convert a 0.0-1.0 metric into a qualitative description."""
+        if value < 0.3: return f"DÜŞÜK ({low_desc})"
+        if value > 0.7: return f"YÜKSEK ({high_desc})"
+        return "ORTA SEVİYE"
+
     def _generate_ai_posts(self, count: int, metrics: Dict, context: str, seed_state) -> List[Dict]:
         """Generate posts using LLM."""
         
+        # Prepare qualitative descriptions
+        unrest_desc = self._describe_metric(metrics.get('public_unrest', 0.5), "Huzurlu/Sakin", "Kaos/İsyan")
+        trust_desc = self._describe_metric(metrics.get('media_trust', 0.5), "Şüpheci", "Güven Tam")
+        corp_desc = self._describe_metric(metrics.get('corp_power_index', 0.5), "Dengeli", "Şirket Diktası")
+
         system_prompt = (
             "Sen Universe 2200 evreni için bir sosyal medya simülatörüsün. "
-            f"Mevcut dünya durumunu yansıtan {count} adet sosyal medya gönderisi oluştur. "
-            "Farklı sesler kullan: Vatandaşlar (alaycı/umutlu), Şirket Botları (propaganda), Fenomenler (kibirli), Yeraltı (asi). "
-            "YASAKLI KELİMELER (Asla kullanma): neon, glitch, siber, cyber, synth, retro, hologram. "
-            "Daha yerel ve distopik argolar kullan: 'çip', 'kredi', 'bölge', 'senkron', 'şebeke'. "
-            "ÖNEMLİ: ASLA huzursuzluk, güven gibi oranları rakam olarak (0.5, %50 vb.) metinde geçirme. "
-            "Bunun yerine atmosferi hissettir. (Örn: 'Huzursuzluk 0.9' ise 'Sokaklar barut kokuyor' de). "
-            "Dil: Türkçe. "
-            "Sadece JSON çıktısı ver."
+            f"Mevcut dünya atmosferine uygun {count} adet kısa sosyal medya gönderisi (tweet) oluştur. "
+            "Roller: Vatandaş (Endişeli/Umutlu), Şirket Botu (Manipülatif), Yeraltı (Asi/Şifreli), Fenomen (Kopuk). "
+            "YASAKLI KELİMELER: 'Huzursuzluk', 'Güven', 'Oran', 'Yüzde', 'Rakam', 'Seviye'. "
+            "ASLA 'Huzursuzluk yüksek' gibi rapor cümleleri kurma. DURUMU GÖSTERME, HİSSETTİR. "
+            "Örnek Kötü: 'Huzursuzluk seviyesi yüksek olduğu için korkuyoruz.' (YAPMA!) "
+            "Örnek İyi: 'Sektör 4'te siren sesleri yine susmuyor. Bu gece uyku yok.' (YAP!) "
+            "Dil: Türkçe (Sokak ağzı, kurumsal jargon karışık). "
+            "Çıktı sadece JSON formatında olsun."
         )
         
         user_prompt = f"""
-        Dünya Durumu (Bu verileri ASLA metinde kullanma, sadece atmosferi yansıt):
-        - Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f}/1.0 (Yüksekse kaos, düşükse düzen)
-        - Medya Güveni: {metrics.get('media_trust', 0.5):.2f}/1.0 (Düşükse herkes yalan söylüyor san)
-        - Şirket Gücü: {metrics.get('corp_power_index', 0.5):.2f}/1.0 (Yüksekse şirketler her yerde)
-        - Bağlam teması: {context}
+        Şu anki Atmosfer:
+        - Sokakların Durumu: {unrest_desc}
+        - İnsanların Medyaya Bakışı: {trust_desc}
+        - Otorite Baskısı: {corp_desc}
+        - Gündem: {context}
         
         İstenen JSON Yapısı:
         {{
             "posts": [
                 {{
-                    "platform": "x" veya "insta",
+                    "platform": "x",
                     "author_type": "citizen|influencer|faction|bot|troll",
-                    "content": "metin (içerikte asla 0.8, 1.0 gibi 'debug' sayıları olmasın!)",
-                    "image_prompt": "görsel tarifi (sadece insta için, yoksa null)",
+                    "content": "Post içeriği (Doğal, kısa, hashtagli)",
                     "engagement_level": "low|medium|high|viral"
                 }}
             ]
@@ -339,7 +349,6 @@ class SocialMediaGenerator:
         
         for i, p in enumerate(response['posts']):
             platform = p.get('platform', 'x').lower()
-            if platform not in ['x', 'insta']: platform = 'x'
             
             # Map engagement level to numbers
             eng_level = p.get('engagement_level', 'medium')
@@ -361,12 +370,16 @@ class SocialMediaGenerator:
                 },
                 "content": p.get('content'),
                 "image_prompt": p.get('image_prompt'),
-                "is_ai_generated": True  # Marker for user verification
+                "is_ai_generated": True
             })
             
         return final_posts
+
     def _generate_ai_posts_real_users(self, count: int, metrics: Dict, context: str, seed_state, users: List[Dict]) -> List[Dict]:
         """Generate posts using AI representing SPECIFIC users."""
+        
+        # Prepare qualitative descriptions
+        unrest_desc = self._describe_metric(metrics.get('public_unrest', 0.5), "Huzurlu", "Kaos")
         
         # Pick N users
         rng = random.Random() 
@@ -375,24 +388,26 @@ class SocialMediaGenerator:
         user_profiles_str = ""
         for i, u in enumerate(selected_users):
             user_profiles_str += (
-                f"User {i+1}: Handle: {u.get('handle')}, Role: {u.get('role')}, "
-                f"Faction: {u.get('faction')}, Traits: {', '.join(u.get('traits', []))}\n"
+                f"ID: {i}, İsim: {u.get('display_name')}, Tip: {u.get('role')}, "
+                f"Kişilik: {', '.join(u.get('traits', []))}\n"
             )
         
         system_prompt = (
-            "Sen Universe 2200 evreni için bir sosyal medya motorusun. "
-            "Sana verilen GERÇEK vatandaş profillerini kullanarak, onların ağzından atılmış tweetler/postlar üret. "
-            "ERİŞİM ENGELİ: Prompt'taki 'Huzursuzluk: 0.8' gibi sayısal verileri ASLA son kullanıcıya gösterme. "
-            "Bunun yerine karakterin o durumu nasıl hissettiğini yaz. "
-            "Kişinin rolüne (Influencer, Gazeteci, Vatandaş) ve faction'ına uygun konuş. "
-            "Argo kullan: kredi, bölge, çip, şebeke. "
+            "Sen bir rol yapma motorusun. Aşağıdaki karakterlerin yerine geçip, "
+            "verilen dünya durumuna tepki veren sosyal medya iletileri yaz. "
+            "KURALLAR: "
+            "1. ASLA sayısal veri (0.8, %50 vb.) kullanma. "
+            "2. Karakterin kişiliğine tam bürün. Troll ise dalga geç, Bot ise resmi konuş. "
+            "3. Argo ve evren terimleri kullan (kredi, çip, biyo-port, sektör). "
+            "4. Kısa ve öz yaz. "
             "Format: JSON listesi."
         )
         
         user_prompt = f"""
-        Bağlam: {context} (Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f} - Sadece atmosfer bilgisi, metinde gösterme!)
+        Ortam Durumu: {unrest_desc}
+        Gündem Konusu: {context}
         
-        Seçilen Kullanıcılar:
+        Karakterler:
         {user_profiles_str}
         
         İstenen JSON Yapısı:
@@ -400,9 +415,7 @@ class SocialMediaGenerator:
             "posts": [
                 {{
                     "user_index": 0,
-                    "platform": "x",
-                    "content": "Post içeriği (sayısal veri içermeyen, doğal konuşma)",
-                    "image_prompt": "görsel tarifi (opsiyonel)"
+                    "content": "İçerik..."
                 }}
             ]
         }}
