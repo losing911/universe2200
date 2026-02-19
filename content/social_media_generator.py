@@ -378,9 +378,6 @@ class SocialMediaGenerator:
     def _generate_ai_posts_real_users(self, count: int, metrics: Dict, context: str, seed_state, users: List[Dict]) -> List[Dict]:
         """Generate posts using AI representing SPECIFIC users."""
         
-        # Prepare qualitative descriptions
-        unrest_desc = self._describe_metric(metrics.get('public_unrest', 0.5), "Huzurlu", "Kaos")
-        
         # Pick N users
         rng = random.Random() 
         selected_users = rng.sample(users, min(len(users), count))
@@ -388,25 +385,24 @@ class SocialMediaGenerator:
         user_profiles_str = ""
         for i, u in enumerate(selected_users):
             user_profiles_str += (
-                f"ID: {i}, İsim: {u.get('display_name')}, Tip: {u.get('role')}, "
-                f"Kişilik: {', '.join(u.get('traits', []))}\n"
+                f"ID: {i}, İsim: {u.get('display_name')}, "
+                f"Bio: {u.get('bio', 'Yok')}\n"
             )
         
         system_prompt = (
-            "Sen bir rol yapma motorusun. Aşağıdaki karakterlerin yerine geçip, "
-            "verilen dünya durumuna tepki veren sosyal medya iletileri yaz. "
+            "Sen 2024 standartlarında bir sosyal medya (Twitter/X) kullanıcısısın. "
+            "Sana verilen kullanıcı profillerini kullanarak 'shitpost', günlük hayat, komik tespitler, "
+            "meme kültürü veya iğneleyici şakalar içeren tweetler at. "
             "KURALLAR: "
-            "1. ASLA sayısal veri (0.8, %50 vb.) kullanma. "
-            "2. Karakterin kişiliğine tam bürün. Troll ise dalga geç, Bot ise resmi konuş. "
-            "3. Argo ve evren terimleri kullan (kredi, çip, biyo-port, sektör). "
-            "4. Kısa ve öz yaz. "
+            "1. ASLA 'dünya durumu', 'huzursuzluk', 'devlet', 'hükümet' gibi ciddi konulara girme (unless it's a joke). "
+            "2. Distopik bir evrende olduğumuzu UNUT. Sadece günlük geyik yapıyorsun. "
+            "3. Tamamen internet ağzı kullan (kanka, aynen, ...dın mı, offf). "
+            "4. Klasik Twitter/Instagram fenomenleri gibi davran. Etkileşim kasmaya çalış. "
+            "5. İçerikler: 'Bugün başıma gelenler', 'Şu olay çok saçma', 'Canım sıkıldı', 'Biri beni durdursun'. "
             "Format: JSON listesi."
         )
         
         user_prompt = f"""
-        Ortam Durumu: {unrest_desc}
-        Gündem Konusu: {context}
-        
         Karakterler:
         {user_profiles_str}
         
@@ -415,7 +411,7 @@ class SocialMediaGenerator:
             "posts": [
                 {{
                     "user_index": 0,
-                    "content": "İçerik..."
+                    "content": "Tweet içeriği (Komik, kısa, samimi, küçük harfle başla)"
                 }}
             ]
         }}
@@ -436,7 +432,6 @@ class SocialMediaGenerator:
                 
                 # Engagement sim
                 likes = random.randint(0, 500)
-                if user.get("role") == "influencer": likes *= 10
                 
                 final_posts.append({
                     "id": f"post_{user['id']}_{random.randint(1000,9999)}",
@@ -453,7 +448,7 @@ class SocialMediaGenerator:
                         "shares": int(likes * 0.05)
                     },
                     "content": p.get('content'),
-                    "image_prompt": p.get('image_prompt'),
+                    "image_prompt": None,
                     "is_ai_generated": True
                 })
             except Exception as e:

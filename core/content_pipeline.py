@@ -260,16 +260,13 @@ class ContentPipeline:
         # Use deterministic seed for social feed
         feed_seed = tick_context.tick_seed + 999
         
-        # Combine Sim Users + DB Users
-        all_users = []
-        
-        # 1. Sim Users (if cached/loaded)
-        if self.social_network and self.social_network.users:
-            all_users.extend(list(self.social_network.users.values()))
-            
-        # 2. DB Users (passed in)
-        if active_users:
-            all_users.extend(active_users)
+        # Priority: Only use DB Users if they exist
+        target_users = []
+        if active_users and len(active_users) > 0:
+            target_users = active_users
+        elif self.social_network and self.social_network.users:
+            # Fallback to sim users only if no DB users found (prevent empty feed)
+            target_users = list(self.social_network.users.values())
         
         # Generate feed using SocialMediaGenerator
         feed_data = self.social_gen.generate_feed(
@@ -277,7 +274,7 @@ class ContentPipeline:
             latest_news=news_items or [],
             seed=feed_seed,
             count_range=(5, 10),
-            users=all_users # Pass combined list
+            users=target_users
         )
         
         return feed_data["posts"]
