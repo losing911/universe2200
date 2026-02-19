@@ -301,15 +301,17 @@ class SocialMediaGenerator:
             "Farklı sesler kullan: Vatandaşlar (alaycı/umutlu), Şirket Botları (propaganda), Fenomenler (kibirli), Yeraltı (asi). "
             "YASAKLI KELİMELER (Asla kullanma): neon, glitch, siber, cyber, synth, retro, hologram. "
             "Daha yerel ve distopik argolar kullan: 'çip', 'kredi', 'bölge', 'senkron', 'şebeke'. "
+            "ÖNEMLİ: ASLA huzursuzluk, güven gibi oranları rakam olarak (0.5, %50 vb.) metinde geçirme. "
+            "Bunun yerine atmosferi hissettir. (Örn: 'Huzursuzluk 0.9' ise 'Sokaklar barut kokuyor' de). "
             "Dil: Türkçe. "
             "Sadece JSON çıktısı ver."
         )
         
         user_prompt = f"""
-        Dünya Durumu:
-        - Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f}/1.0
-        - Medya Güveni: {metrics.get('media_trust', 0.5):.2f}/1.0
-        - Şirket Gücü: {metrics.get('corp_power_index', 0.5):.2f}/1.0
+        Dünya Durumu (Bu verileri ASLA metinde kullanma, sadece atmosferi yansıt):
+        - Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f}/1.0 (Yüksekse kaos, düşükse düzen)
+        - Medya Güveni: {metrics.get('media_trust', 0.5):.2f}/1.0 (Düşükse herkes yalan söylüyor san)
+        - Şirket Gücü: {metrics.get('corp_power_index', 0.5):.2f}/1.0 (Yüksekse şirketler her yerde)
         - Bağlam teması: {context}
         
         İstenen JSON Yapısı:
@@ -318,7 +320,7 @@ class SocialMediaGenerator:
                 {{
                     "platform": "x" veya "insta",
                     "author_type": "citizen|influencer|faction|bot|troll",
-                    "content": "metin (X için) veya açıklama (Insta için)",
+                    "content": "metin (içerikte asla 0.8, 1.0 gibi 'debug' sayıları olmasın!)",
                     "image_prompt": "görsel tarifi (sadece insta için, yoksa null)",
                     "engagement_level": "low|medium|high|viral"
                 }}
@@ -380,13 +382,15 @@ class SocialMediaGenerator:
         system_prompt = (
             "Sen Universe 2200 evreni için bir sosyal medya motorusun. "
             "Sana verilen GERÇEK vatandaş profillerini kullanarak, onların ağzından atılmış tweetler/postlar üret. "
-            "Kişinin rolüne (Influencer, Gazeteci, Vatandaş) ve faction'ına (Corporate, Civic, vb.) uygun konuş. "
-            "Argo, yerel terimler (kredi, bölge, çip) kullan. "
+            "ERİŞİM ENGELİ: Prompt'taki 'Huzursuzluk: 0.8' gibi sayısal verileri ASLA son kullanıcıya gösterme. "
+            "Bunun yerine karakterin o durumu nasıl hissettiğini yaz. "
+            "Kişinin rolüne (Influencer, Gazeteci, Vatandaş) ve faction'ına uygun konuş. "
+            "Argo kullan: kredi, bölge, çip, şebeke. "
             "Format: JSON listesi."
         )
         
         user_prompt = f"""
-        Bağlam: {context} (Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f})
+        Bağlam: {context} (Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f} - Sadece atmosfer bilgisi, metinde gösterme!)
         
         Seçilen Kullanıcılar:
         {user_profiles_str}
@@ -395,9 +399,9 @@ class SocialMediaGenerator:
         {{
             "posts": [
                 {{
-                    "user_index": 0, // Yukarıdaki listedeki sıra no (1-based değil 0-based index)
+                    "user_index": 0,
                     "platform": "x",
-                    "content": "Post içeriği...",
+                    "content": "Post içeriği (sayısal veri içermeyen, doğal konuşma)",
                     "image_prompt": "görsel tarifi (opsiyonel)"
                 }}
             ]
