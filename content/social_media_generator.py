@@ -23,9 +23,11 @@ class SocialMediaGenerator:
                      latest_news: List[Dict],
                      seed: int,
                      platform: str = "x", # 'x' or 'insta'
-                     count_range: tuple = (5, 15)) -> Dict[str, List[Dict]]:
+                     count_range: tuple = (5, 15),
+                     users: List[Dict] = None) -> Dict[str, List[Dict]]:
         """
         Generate a list of social media posts for a specific platform.
+        If 'users' list is provided, acts as real citizens.
         """
         rng = random.Random(seed)
         
@@ -52,13 +54,31 @@ class SocialMediaGenerator:
 
         # Fallback / Deterministic Loop
         
+        if self.llm_client and users: # Use AI with Real Users
+             try:
+                ai_posts_data = self._generate_ai_posts_real_users(num_posts, world_metrics, news_context, list(post_rng.getstate()), users)
+                if ai_posts_data:
+                    return {"posts": ai_posts_data}
+             except Exception as e:
+                print(f"AI Social Gen failed (fallback): {e}")
+
+        # Fallback / Deterministic Loop
+        
         for i in range(num_posts):
             # Deterministic post seed
             post_seed = seed + i * 7919
             post_rng = random.Random(post_seed)
             
-            # Select Author Type based on Platform & Metrics
-            author_type = self._select_author_type(unrest, platform, post_rng)
+            author_user = None
+            if users:
+                author_user = post_rng.choice(users)
+                author_type = author_user.get("role", "citizen")
+                # Normalize types for templates
+                if author_type not in ["influencer", "media", "faction", "bot", "troll", "comedian"]:
+                    author_type = "citizen"
+            else:
+                # Select Author Type based on Platform & Metrics (Legacy)
+                author_type = self._select_author_type(unrest, platform, post_rng)
             
             # Generate ID
             post_id = f"{platform}_{seed}_{i}"
@@ -80,6 +100,14 @@ class SocialMediaGenerator:
                 "engagement": engagement,
                 **content_data
             }
+            
+            # Inject Real User Data
+            if author_user:
+                post["author_id"] = author_user.get("id")
+                post["author_handle"] = author_user.get("handle")
+                post["author_avatar"] = author_user.get("avatar")
+                post["author_name"] = author_user.get("display_name")
+            
             posts.append(post)
             
         return {"posts": posts}
@@ -334,4 +362,85 @@ class SocialMediaGenerator:
                 "is_ai_generated": True  # Marker for user verification
             })
             
+        return final_posts
+    def _generate_ai_posts_real_users(self, count: int, metrics: Dict, context: str, seed_state, users: List[Dict]) -> List[Dict]:
+        """Generate posts using AI representing SPECIFIC users."""
+        
+        # Pick N users
+        rng = random.Random() 
+        selected_users = rng.sample(users, min(len(users), count))
+        
+        user_profiles_str = ""
+        for i, u in enumerate(selected_users):
+            user_profiles_str += (
+                f"User {i+1}: Handle: {u.get('handle')}, Role: {u.get('role')}, "
+                f"Faction: {u.get('faction')}, Traits: {', '.join(u.get('traits', []))}\n"
+            )
+        
+        system_prompt = (
+            "Sen Universe 2200 evreni için bir sosyal medya motorusun. "
+            "Sana verilen GERÇEK vatandaş profillerini kullanarak, onların ağzından atılmış tweetler/postlar üret. "
+            "Kişinin rolüne (Influencer, Gazeteci, Vatandaş) ve faction'ına (Corporate, Civic, vb.) uygun konuş. "
+            "Argo, yerel terimler (kredi, bölge, çip) kullan. "
+            "Format: JSON listesi."
+        )
+        
+        user_prompt = f"""
+        Bağlam: {context} (Huzursuzluk: {metrics.get('public_unrest', 0.5):.2f})
+        
+        Seçilen Kullanıcılar:
+        {user_profiles_str}
+        
+        İstenen JSON Yapısı:
+        {{
+            "posts": [
+                {{
+                    "user_index": 0, // Yukarıdaki listedeki sıra no (1-based değil 0-based index)
+                    "platform": "x",
+                    "content": "Post içeriği...",
+                    "image_prompt": "görsel tarifi (opsiyonel)"
+                }}
+            ]
+        }}
+        """
+        
+        response = self.llm_client.generate_json(system_prompt, user_prompt)
+        if not response or 'posts' not in response:
+            return None
+            
+        final_posts = []
+        for p in response['posts']:
+            try:
+                idx = p.get('user_index', 0)
+                if idx >= len(selected_users): continue
+                
+                user = selected_users[idx]
+                platform = "x"
+                
+                # Engagement sim
+                likes = random.randint(0, 500)
+                if user.get("role") == "influencer": likes *= 10
+                
+                final_posts.append({
+                    "id": f"post_{user['id']}_{random.randint(1000,9999)}",
+                    "platform": platform,
+                    "author_id": user['id'],
+                    "author_handle": user['handle'],
+                    "author_name": user['display_name'],
+                    "author_avatar": user['avatar'],
+                    "author_type": user.get('role', 'citizen'),
+                    "timestamp": datetime.now().isoformat(),
+                    "engagement": {
+                        "likes": likes,
+                        "comments": int(likes * 0.1),
+                        "shares": int(likes * 0.05)
+                    },
+                    "content": p.get('content'),
+                    "image_prompt": p.get('image_prompt'),
+                    "is_ai_generated": True
+                })
+            except Exception as e:
+                print(f"Skipping post gen error: {e}")
+                continue
+                
         return final_posts

@@ -41,9 +41,10 @@ class ContentPipeline:
         "corporate_power": 0.8,    # Corporate dominance
     }
     
-    def __init__(self, llm_client=None):
+    def __init__(self, llm_client=None, social_network=None):
         """Initialize content pipeline."""
         self.llm_client = llm_client
+        self.social_network = social_network
         self.social_gen = SocialMediaGenerator(llm_client=llm_client)
     
     def run(self, 
@@ -256,13 +257,19 @@ class ContentPipeline:
         # Use deterministic seed for social feed
         feed_seed = tick_context.tick_seed + 999
         
+        # Get active users if available
+        active_users = []
+        if self.social_network and self.social_network.users:
+            active_users = list(self.social_network.users.values())
+        
         # Generate feed using SocialMediaGenerator
         # It handles tone, content, and engagement based on metrics/news
         feed_data = self.social_gen.generate_feed(
             world_metrics=metrics,
             latest_news=news_items or [],
             seed=feed_seed,
-            count_range=(5, 10)
+            count_range=(5, 10),
+            users=active_users
         )
         
         return feed_data["posts"]

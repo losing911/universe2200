@@ -114,8 +114,8 @@ class DailyScheduler:
             comment_manager=comment_manager
         )
         
-        # Re-initialize ContentPipeline with LLM Client
-        content_pipeline = ContentPipeline(llm_client=llm_client)
+        # Re-initialize ContentPipeline with LLM Client and Social Network
+        content_pipeline = ContentPipeline(llm_client=llm_client, social_network=self.social_network)
         
         # Initialize SocialMediaGenerator with LLM Client
         social_generator = SocialMediaGenerator(llm_client=llm_client)
